@@ -1,6 +1,7 @@
 import type { QuizCategory } from "@/lib/store/progress";
 
 export type QuizImage =
+  | { kind: "endo"; view: string }
   | { kind: "endo"; segment: string; back: number; lookAt?: string; lesion?: { segment: string; t: number; offset: [number, number, number]; radius: number } }
   | { kind: "cp-ebus"; preset: "doppler-vessel" | "malignant-node" | "benign-node" | "needle-in-node" }
   | { kind: "rp-ebus"; pattern: "concentric" | "eccentric" | "adjacent" | "aerated" };
@@ -28,11 +29,11 @@ export const QUIZ: QuizQuestion[] = [
   {
     id: "a1",
     category: "anatomy",
-    stem: "A trainee advances the scope and obtains the view shown (labels off). Which lobar bronchus characteristically trifurcates like this into apical, posterior and anterior segments?",
-    image: { kind: "endo", segment: "RUL", back: 7 },
+    stem: "After rotating clockwise and flexing up, the trainee obtains the view shown (labels off). Which lobar bronchus characteristically trifurcates like this into apical, posterior and anterior segments?",
+    image: { kind: "endo", view: "rul" },
     options: ["Right upper lobe bronchus", "Left upper lobe — upper division", "Right lower lobe basal trunk", "Right middle lobe bronchus"],
     answer: 0,
-    rationale: "The RUL bronchus runs laterally 1–2 cm and trifurcates into B1 (apical), B2 (posterior) and B3 (anterior). On the left, B1 and B2 share a common apicoposterior trunk, so the upper division bifurcates (B1+2, B3).",
+    rationale: "The RUL bronchus runs laterally 1–2 cm and trifurcates into B1 (apical, top of the image), B3 (anterior, left) and B2 (posterior, right) — the 'Mercedes-Benz' sign. On the left, B1 and B2 share a common apicoposterior trunk, so the upper division bifurcates (B1+2, B3).",
     refs: ["ERNST"],
   },
   {
@@ -116,9 +117,9 @@ export const QUIZ: QuizQuestion[] = [
   {
     id: "a10",
     category: "anatomy",
-    stem: "The view shows the left main bronchus approaching its distal division. The two lobar orifices are:",
-    image: { kind: "endo", segment: "LMB", back: 12 },
-    options: ["Left upper lobe (anterolateral) and left lower lobe (posterior)", "Upper division and lingula", "LB6 and the basal trunk", "Left upper lobe and the cardiac bronchus"],
+    stem: "The view shows the distal left main bronchus (standard atlas orientation). The two lobar orifices separated by the secondary carina are:",
+    image: { kind: "endo", view: "lmb" },
+    options: ["Left upper lobe (above) and left lower lobe (below)", "Upper division and lingula", "LB6 and the basal trunk", "Left upper lobe and the cardiac bronchus"],
     answer: 0,
     rationale: "The LMB ends at the secondary carina dividing into the LUL (anterior/superior) and LLL (posterior/inferior). The LUL then divides into the upper division and the lingula.",
     refs: ["ERNST"],

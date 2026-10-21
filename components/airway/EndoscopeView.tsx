@@ -73,7 +73,7 @@ export function EndoscopeView({
           flashRef={flashRef}
           onTick={onTick}
           labelRefs={annotations ? labelRefs : undefined}
-          steps={quality === "high" ? 96 : 64}
+          steps={quality === "high" ? 120 : 72}
         />
       </Canvas>
       {annotations && (
@@ -93,8 +93,6 @@ export function EndoscopeView({
           ))}
         </div>
       )}
-      {/* orientation notch: marks image "up" like the real bronchoscope display */}
-      <div className="pointer-events-none absolute left-1/2 top-[3%] h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[8px] border-x-transparent border-t-cyan-400/70" />
       {children}
     </div>
   );
@@ -193,6 +191,17 @@ function ScopeQuad({
   );
 }
 
+/** Display names used on the endoscopic image (atlas-style abbreviations). */
+const SHORT_LABEL: Record<string, string> = {
+  RLL: "B7–10",
+  "RB-basal": "B8–10",
+  "RB9+10": "B9+10",
+  "LUL-upper": "UDB",
+  Lingula: "LIN",
+  "LB-basal": "B8–10",
+  "LB9+10": "B9+10",
+};
+
 const LABEL_CANDIDATES = SEGMENTS.filter((s) => s.level !== "subsegmental" && s.level !== "trachea");
 
 function occluded(from: V3, to: V3, segs: Segment[]): boolean {
@@ -241,7 +250,7 @@ function updateLabels(
   const nearestJunction = Math.min(...visible.map((v) => v.jd));
   const placed: typeof visible = [];
   for (const v of visible.sort((a, b) => a.jd - b.jd || a.dist - b.dist)) {
-    if (v.jd > nearestJunction + 9) continue;
+    if (v.jd > nearestJunction + 4) continue;
     if (placed.some((p) => Math.hypot(p.x - v.x, p.y - v.y) < 30)) continue;
     placed.push(v);
   }
@@ -253,7 +262,7 @@ function updateLabels(
       el.style.display = "none";
       continue;
     }
-    const short = v.s.def?.boyden ?? v.s.id;
+    const short = SHORT_LABEL[v.s.id] ?? v.s.def?.boyden ?? v.s.id;
     if (el.textContent !== short) el.textContent = short;
     el.dataset.seg = v.s.id;
     el.title = v.s.name;

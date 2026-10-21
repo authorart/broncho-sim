@@ -21,3 +21,9 @@
 **Procedure** — One of six sampling techniques: BW, BAL, brush, EBBx, TBLB or TBNA/EBUS-TBNA.
 
 **Non-diagnostic** — A sampling result that does not establish a diagnosis. It is preferred over "negative" because TBNA lacks a 100% negative predictive value.
+
+**Standard view** — A named endoscopic view whose orientation matches the reference atlas photograph (Olympus nomenclature poster). Right-sided views are shown rotated, as they appear after the usual scope rotation.
+
+**Secondary carina** — A spur between lobar or segmental orifices: RC1 separates the RUL and the bronchus intermedius; RC2 separates the RML and RLL; LC1 separates the upper division and the lingula; LC2 separates the LUL and LLL.
+
+**Common trunk** — A short bronchus shared by two segments before they divide, for example B9+10 (both sides) or the left B1+2 and B7+8.

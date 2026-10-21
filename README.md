@@ -16,6 +16,10 @@ A browser-based training suite for flexible bronchoscopy, built with **Next.js 1
 
 All imagery is generated procedurally (GLSL raymarching for the airway, canvas speckle synthesis for ultrasound) — no copyrighted figures are included.
 
+### Anatomical and equipment references
+- Airway branching and the orientation of the standard views were calibrated against the Olympus *Nomenclature and Anatomy of the Bronchial Tree* poster, the Lausanne Bronchoscopy Atlas (normal anatomy) and the VUmc *Segmental anatomy and bronchoscopy* video. The views were compared side by side; no images were copied.
+- Instrument specifications come from the Olympus BF-190 series operation manual, the EBUS-TBNA brochure (BF-UC190F, ViziShot needles) and the BF-UCP190F brochure.
+
 ## Development
 
 ```bash

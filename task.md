@@ -36,3 +36,12 @@ Spec: `broncho-sim-prompt.md` · Primary reference: Ernst A. (ed.) *Introduction
 - Next.js 16.4 / React 19 / Tailwind 4 / R3F 9 / drei 10 / Zustand 5. `cacheComponents` disabled (static app; avoids hidden WebGL contexts).
 - Endoscopic view = raymarched SDF of tapered capsules (see `docs/adr/0001-sdf-raymarched-endoscopic-view.md`).
 - Verified: eslint + tsc clean, `next build` static (18 pages), headless Chrome screenshots of every route with no console errors.
+
+## Round 2 — realism fixes (user feedback: anatomy views and equipment not realistic)
+- [x] Study new references: Olympus anatomy poster, BF-190 manual, EBUS-TBNA and BF-UCP190F brochures, bronchoscopyatlas.ch normal anatomy (28 photos), VUmc segmental anatomy video (≈50 annotated frames)
+- [x] Rebuild airway tree: B6 at RML level, B7 medial-first, B9+10 common trunks, left B7+8, a/b/c subsegments
+- [x] Endoscopic rendering: octagonal Olympus frame, salmon wet mucosa, capillaries, pale rings, striated membranous wall, sharper spurs, hue-preserving exposure
+- [x] Standard views calibrated to the poster orientations (shared by atlas, simulator, quiz)
+- [x] Scope physics: BF-H190 tip (5.5 mm), 210°/130° angulation, jam-based wedging at subsegmental level
+- [x] Equipment redrawn from the manual/brochures: BF-190 control section and rotation ring, model specs; BF-UC190F / UCP190F tip (UP-facing transducer, oblique optics, 65° sector), ViziShot needle handle; radial EBUS set-up
+- [x] Build, verify, commit, deploy

@@ -84,16 +84,21 @@ function buildTree(): Segment[] {
     out.push(seg);
     byId.set(def.id, seg);
   }
-  // Procedurally add two subsegmental bronchi (a/b) to every segment so lumens
-  // don't end blindly. Purely visual; named generically.
+  // Procedurally add subsegmental bronchi (a/b or a/b/c, per the Olympus poster) so lumens
+  // don't end blindly and each segmental view shows its next division.
   const segmentals = out.filter((s) => s.level === "segmental");
   for (const s of segmentals) {
+    const n = s.def?.subsegments ?? 2;
     const helper: V3 = Math.abs(s.dir[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
     const perp = norm(cross(s.dir, helper));
-    for (const [suffix, sign] of [["a", 1], ["b", -1]] as const) {
-      const dir = norm(rotate(s.dir, perp, sign * 0.5));
+    for (let k = 0; k < n; k++) {
+      const suffix = "abc"[k];
+      // spread children around the parent axis: 2-way = opposite, 3-way = 120° apart
+      const spin = n === 2 ? k * Math.PI : (k * 2 * Math.PI) / 3;
+      const axis = norm(rotate(perp, s.dir, spin));
+      const dir = norm(rotate(s.dir, axis, 0.48));
       const a = s.b;
-      const length = 10;
+      const length = 9;
       const sub: Segment = {
         index: out.length,
         id: `${s.id}${suffix}`,
@@ -107,8 +112,8 @@ function buildTree(): Segment[] {
         b: add(a, scale(dir, length)),
         dir,
         length,
-        r1: s.r2 * 0.78,
-        r2: s.r2 * 0.55,
+        r1: s.r2 * (n === 3 ? 0.66 : 0.76),
+        r2: s.r2 * 0.5,
         rings: 0,
       };
       out.push(sub);
@@ -125,7 +130,7 @@ for (const s of SEGMENTS) {
 }
 
 /** Smooth-min blend radius (mm) used for bifurcation spurs. Shared with the GLSL shader. */
-export const SMOOTH_K = 1.6;
+export const SMOOTH_K = 0.9;
 
 function smin(a: number, b: number, k: number) {
   const h = Math.max(k - Math.abs(a - b), 0) / k;
@@ -206,8 +211,14 @@ export function orthoUp(forward: V3, preferred: V3 = ANTERIOR): V3 {
   return norm(up);
 }
 
-/** Camera placed back along `segId`, looking at its distal division (or at a child). */
-export function poseLookingInto(segId: string, back: number, lookAt?: string): Pose {
+/**
+ * Camera placed back along `segId`, looking at its distal division (or at a child).
+ * `upHint` picks which anatomical direction appears at the top of the image (default anterior,
+ * the neutral scope orientation with the operator behind the head); `rollDeg` then rotates the
+ * image counter-clockwise (negative = clockwise), mimicking scope rotation so presets match
+ * standard atlas photographs.
+ */
+export function poseLookingInto(segId: string, back: number, lookAt?: string, upHint: V3 = ANTERIOR, rollDeg = 0): Pose {
   const s = SEG_BY_ID[segId];
   const pos = sub(s.b, scale(s.dir, back));
   let target = s.b;
@@ -216,8 +227,13 @@ export function poseLookingInto(segId: string, back: number, lookAt?: string): P
     target = add(c.a, scale(c.dir, Math.min(6, c.length * 0.5)));
   }
   const forward = norm(sub(target, pos));
-  return { pos, forward, up: orthoUp(forward) };
+  let up = orthoUp(forward, upHint);
+  if (rollDeg) up = norm(rotate(up, forward, (rollDeg * Math.PI) / 180));
+  return { pos, forward, up };
 }
+
+export const SUPERIOR_V: V3 = SUPERIOR;
+export const ANTERIOR_V: V3 = ANTERIOR;
 
 export const START_POSE: Pose = (() => {
   const t = SEG_BY_ID.trachea;

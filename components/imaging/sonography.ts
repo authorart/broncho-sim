@@ -27,7 +27,7 @@ export type ConvexParams = {
 
 const APEX = 10; // virtual apex above transducer face (mm)
 const MAX_R = 52;
-const HALF_SECTOR = (36 * Math.PI) / 180;
+const HALF_SECTOR = (32.5 * Math.PI) / 180; // 65° scanning range (BF-UC190F)
 
 function inEllipse(px: number, py: number, e: Ellipse) {
   const c = Math.cos(-(e.rot ?? 0));
@@ -64,11 +64,14 @@ function softenInPlace(ctx: CanvasRenderingContext2D, W: number, H: number) {
   ctx.restore();
 }
 
-/** Needle geometry: enters from the upper-left (working channel exit) toward lower-right. */
+/**
+ * Needle geometry: enters from the upper RIGHT of the sector (as on the Olympus EBUS display,
+ * where the channel outlet lies proximal to the transducer) and travels down-left.
+ */
 export function needleSegment(n: { depth: number; angleDeg: number }) {
   const a = (n.angleDeg * Math.PI) / 180;
-  const start = { x: -15, y: 2 };
-  const end = { x: start.x + Math.cos(a) * n.depth, y: start.y + Math.sin(a) * n.depth };
+  const start = { x: 15, y: 2 };
+  const end = { x: start.x - Math.cos(a) * n.depth, y: start.y + Math.sin(a) * n.depth };
   return { start, end };
 }
 
@@ -298,8 +301,8 @@ export const CONVEX_PRESETS: Record<string, Omit<ConvexParams, "gain">> = {
   },
   "needle-in-node": {
     seed: 41,
-    nodes: [{ x: 4, y: 18, rx: 10, ry: 8, rot: 0.1, echo: 0.24, heterogeneity: 0.5, margin: 0.8 }],
-    vessels: [{ x: -2, y: 34, rx: 7, ry: 5, flow: "away" }],
+    nodes: [{ x: -4, y: 18, rx: 10, ry: 8, rot: -0.1, echo: 0.24, heterogeneity: 0.5, margin: 0.8 }],
+    vessels: [{ x: 2, y: 34, rx: 7, ry: 5, flow: "away" }],
     doppler: false,
     needle: { depth: 25, angleDeg: 38 },
   },

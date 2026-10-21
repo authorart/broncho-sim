@@ -42,12 +42,13 @@ export function TbnaSim() {
   const push = (l: SimLog) => setLog((x) => [l, ...x]);
 
   // Scene for station 4R: node lateral, SVC/azygos nearby. `shift` slides anatomy as the scope moves.
-  const node = { x: 6 + shift, y: 18, rx: 8.5, ry: 7 };
-  const vessel = { x: -5 + shift, y: 14, rx: 5.5, ry: 5 };
+  // Mirrored so the needle (entering from the upper right) must avoid the vessel.
+  const node = { x: -(6 + shift), y: 18, rx: 8.5, ry: 7 };
+  const vessel = { x: 5 - shift, y: 14, rx: 5.5, ry: 5 };
   const depth = inNode ? Math.min(stopper, 34) : 0;
   const params: ConvexParams = {
     seed: 77,
-    nodes: [{ ...node, rot: 0.1, echo: 0.24, heterogeneity: 0.6, margin: 0.85 }],
+    nodes: [{ ...node, rot: -0.1, echo: 0.24, heterogeneity: 0.6, margin: 0.85 }],
     vessels: [{ ...vessel, flow: "toward" }],
     doppler,
     gain: 1,
@@ -241,7 +242,7 @@ export function TbnaSim() {
             </div>
             <div>
               <ConvexSonogram params={params} />
-              <p className="mt-1 text-[11px] text-muted">Needle path enters from the upper left at a fixed angle — move the scope to align the node, check Doppler, set the stopper.</p>
+              <p className="mt-1 text-[11px] text-muted">Needle path enters from the upper right at a fixed angle — move the scope to align the node, check Doppler, set the stopper.</p>
             </div>
           </section>
         )}

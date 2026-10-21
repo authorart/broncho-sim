@@ -18,14 +18,14 @@ import {
 
 /**
  * Simplified flexible-bronchoscope kinematics.
- * - Thumb lever bends the distal tip: up to +180° / −130° (Ernst ch. 6); the view tilts with it.
+ * - Thumb lever bends the distal tip: up to +210° / −130° (Olympus BF-H190; Ernst ch. 6 quotes ~180°/130°); the view tilts with it.
  * - Advancing follows the tip ("follow-the-leader"), so a flexed tip steers the shaft.
  * - Rotation of the whole scope (wrist/torque) rolls the image.
  * - The tip (Ø ~5 mm) cannot pass lumens narrower than itself: it wedges.
  */
 
-export const TIP_RADIUS = 2.4;
-export const FLEX_UP_MAX = 180;
+export const TIP_RADIUS = 2.6;
+export const FLEX_UP_MAX = 210;
 export const FLEX_DOWN_MAX = -130;
 /** Fraction of lever angle that appears as camera tilt (bending section geometry). */
 const VIEW_TILT = 0.32;
@@ -113,7 +113,7 @@ export function stepScope(s: ScopeState, input: ScopeInput, dt: number): ScopeSt
       const local = nearestSegment(next);
       const [, h] = capsuleDist(next, local.seg);
       const localR = local.seg.r1 + (local.seg.r2 - local.seg.r1) * h;
-      if (ds > 0 && localR < TIP_RADIUS + 0.5) {
+      if (ds > 0 && localR < TIP_RADIUS + 0.15) {
         // Lumen narrower than the scope: wedge position (tip fills the airway).
         s.wedged = true;
         return s;
@@ -129,6 +129,12 @@ export function stepScope(s: ScopeState, input: ScopeInput, dt: number): ScopeSt
         s.flash = 1;
       }
       if (w < TIP_RADIUS * 0.5) return s; // could not resolve — refuse move
+      // Tip jammed into a lumen barely wider than the scope: it has wedged rather than advanced.
+      const progress = dot(sub(next, s.pos), view.forward);
+      if (ds > 0 && progress < 0.25 * ds && localR < TIP_RADIUS + 0.9) {
+        s.wedged = true;
+        return s;
+      }
       // Passive compliance: the wall guides the shaft along the lumen.
       const axis = local.seg.dir;
       const sign = dot(axis, s.heading) >= 0 ? 1 : -1;
@@ -142,8 +148,8 @@ export function stepScope(s: ScopeState, input: ScopeInput, dt: number): ScopeSt
     }
     // keep up-vector orthonormal
     s.headingUp = norm(sub(s.headingUp, scale(s.heading, dot(s.headingUp, s.heading))));
+    s.insertedMm += dot(sub(next, s.pos), view.forward);
     s.pos = next;
-    s.insertedMm += ds;
   }
   return s;
 }

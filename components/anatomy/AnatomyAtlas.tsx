@@ -5,7 +5,8 @@ import { useRef, useState } from "react";
 import { AlertTriangle, Boxes, Eye, Info, Layers, Lightbulb, MapPin, Shuffle } from "lucide-react";
 import { Badge, Button, Callout, Card, CardHeader, Tabs } from "@/components/ui/primitives";
 import { MiniMap } from "@/components/airway/MiniMap";
-import { SEG_BY_ID, poseLookingInto, START_POSE, type Pose } from "@/lib/airway/geometry";
+import { SEG_BY_ID, type Pose } from "@/lib/airway/geometry";
+import { STANDARD_VIEWS, type StandardView } from "@/lib/airway/views";
 import { NODE_STATIONS, ZONE_COLORS, type Access } from "@/lib/data/mediastinum";
 import type { MapOptions, MapSelection } from "@/components/airway/AirwayMap3D";
 import { LarynxDiagram } from "./LarynxDiagram";
@@ -20,31 +21,15 @@ const AirwayMap3D = dynamic(() => import("@/components/airway/AirwayMap3D").then
   loading: () => <div className="h-full w-full animate-pulse bg-panel" />,
 });
 
-type Station = { id: string; label: string; focus: string; pose: () => Pose };
-
-const STATIONS: Station[] = [
-  { id: "subglottis", label: "Subglottis / upper trachea", focus: "trachea", pose: () => START_POSE },
-  { id: "carina", label: "Main carina", focus: "RMB", pose: () => poseLookingInto("trachea", 16) },
-  { id: "rmb", label: "RMB — RUL takeoff", focus: "RUL", pose: () => poseLookingInto("RMB", 9, "RUL") },
-  { id: "rul", label: "RUL trifurcation", focus: "RUL", pose: () => poseLookingInto("RUL", 7) },
-  { id: "bi", label: "Bronchus intermedius", focus: "BI", pose: () => poseLookingInto("BI", 12) },
-  { id: "rml", label: "RML (B4/B5)", focus: "RML", pose: () => poseLookingInto("RML", 7) },
-  { id: "rll", label: "RLL: B6 & basal trunk", focus: "RLL", pose: () => poseLookingInto("RLL", 6) },
-  { id: "rbasal", label: "RLL basal B7–B10", focus: "RB-basal", pose: () => poseLookingInto("RB-basal", 6) },
-  { id: "lmb", label: "Secondary (LUL/LLL) carina", focus: "LMB", pose: () => poseLookingInto("LMB", 14) },
-  { id: "lul", label: "LUL: upper division vs lingula", focus: "LUL", pose: () => poseLookingInto("LUL", 6) },
-  { id: "lupper", label: "Upper division B1+2 / B3", focus: "LUL-upper", pose: () => poseLookingInto("LUL-upper", 6) },
-  { id: "lingula", label: "Lingula B4/B5", focus: "Lingula", pose: () => poseLookingInto("Lingula", 8) },
-  { id: "lll", label: "LLL: B6 & basal trunk", focus: "LLL", pose: () => poseLookingInto("LLL", 6) },
-  { id: "lbasal", label: "LLL basal B7+8 / B9 / B10", focus: "LB-basal", pose: () => poseLookingInto("LB-basal", 6) },
-];
+type Station = StandardView;
+const STATIONS: Station[] = STANDARD_VIEWS;
 
 const ACCESS: (Access | "all")[] = ["all", "EBUS", "EUS", "Mediastinoscopy", "Surgical"];
 
 export function AnatomyAtlas() {
   const [tab, setTab] = useState<"endo" | "map">("endo");
   const [station, setStation] = useState(STATIONS[1]);
-  const [focus, setFocus] = useState<string>("RMB");
+  const [focus, setFocus] = useState<string>(STATIONS[1].focus);
   const poseRef = useRef<Pose>(STATIONS[1].pose());
   const [labels, setLabels] = useState(true);
   const [selection, setSelection] = useState<MapSelection>({ type: "node", id: "4R" });
@@ -93,6 +78,10 @@ export function AnatomyAtlas() {
                   {station.label}
                 </div>
               </EndoscopeView>
+              <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                <span className="font-semibold text-cyan-300">Reference layout: </span>
+                {station.expected}
+              </p>
               <div className="mt-2 flex justify-between">
                 <Button size="sm" variant="ghost" onClick={() => setLabels((l) => !l)}>
                   <Layers className="h-3.5 w-3.5" /> {labels ? "Hide" : "Show"} labels

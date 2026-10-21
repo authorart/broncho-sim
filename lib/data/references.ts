@@ -17,6 +17,40 @@ export const REFERENCES: Reference[] = [
       "Ernst A, ed. Introduction to Bronchoscopy. 2nd ed. Cambridge University Press; 2017 (ch. 4 Airway anatomy, ch. 6 Bronchoscope, ch. 8 Indications, ch. 9 BW/BAL/brush/EBBx, ch. 10 TBLB, ch. 11 TBNA, ch. 13 EBUS).",
   },
   {
+    id: "OLY-POSTER",
+    short: "Olympus poster",
+    citation:
+      "Olympus. Videobronchoscopy — Nomenclature and Anatomy of the Bronchial Tree (poster E0428301; clinical images R. Eberhardt, Thoraxklinik Heidelberg). Used for segmental nomenclature and the orientation of standard views.",
+  },
+  {
+    id: "OLY-BF190",
+    short: "Olympus BF-190 manual",
+    citation:
+      "Olympus. BF-190 Series Operation Manual (BF-Q190, BF-H190, BF-1TH190, BF-P190, BF-XP190): instrument nomenclature and specifications.",
+  },
+  {
+    id: "OLY-EBUS",
+    short: "Olympus EBUS-TBNA brochure",
+    citation: "Olympus. EBUS-TBNA — Looking and Sampling beyond the Bronchial Wall (BF-UC190F, ViziShot / ViziShot 2 needles, EU-ME3). M00507EN, 2023.",
+  },
+  {
+    id: "OLY-UCP",
+    short: "Olympus BF-UCP190F brochure",
+    citation: "Olympus. BF-UCP190F EBUS Bronchoscope — Precision in the Periphery (product brochure S00718EN).",
+  },
+  {
+    id: "ATLAS-CH",
+    short: "Bronchoscopy Atlas (Lausanne)",
+    citation: "Bronchoscopy Atlas — Normal anatomy: trachea, right and left bronchial trees (endoscopic photographs).",
+    url: "https://bronchoscopyatlas.ch/atlas/index.php/Normal-anatomy",
+  },
+  {
+    id: "VUMC-VIDEO",
+    short: "VUmc segmental anatomy video",
+    citation: "School of Respirology, VU University Medical Center Amsterdam (Daniels JMA, Sutedja TG). Segmental anatomy and bronchoscopy (video, 2010).",
+    url: "https://www.youtube.com/watch?v=ThYHLG50pH0",
+  },
+  {
     id: "BTS2013",
     short: "BTS 2013",
     citation:

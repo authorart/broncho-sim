@@ -42,6 +42,7 @@ import {
   type ScopeState,
 } from "@/lib/airway/scope";
 import { useProgress } from "@/lib/store/progress";
+import { STANDARD_VIEWS } from "@/lib/airway/views";
 import { cn, formatSeconds } from "@/lib/utils";
 
 type Mode = "free" | "navigate" | "identify";
@@ -57,17 +58,7 @@ type Hud = {
   time: number;
 };
 
-const LANDMARKS: { label: string; pose: () => Pose }[] = [
-  { label: "Subglottis (start)", pose: () => START_POSE },
-  { label: "Main carina", pose: () => poseLookingInto("trachea", 16) },
-  { label: "RUL orifice", pose: () => poseLookingInto("RMB", 9, "RUL") },
-  { label: "RUL trifurcation", pose: () => poseLookingInto("RUL", 7) },
-  { label: "BI → RML / RLL", pose: () => poseLookingInto("BI", 12) },
-  { label: "RLL basal segments", pose: () => poseLookingInto("RB-basal", 6) },
-  { label: "LUL / LLL secondary carina", pose: () => poseLookingInto("LMB", 14) },
-  { label: "Upper division vs lingula", pose: () => poseLookingInto("LUL", 6) },
-  { label: "LLL basal segments", pose: () => poseLookingInto("LB-basal", 6) },
-];
+const LANDMARKS: { label: string; pose: () => Pose }[] = STANDARD_VIEWS;
 
 function depthOf(id: string) {
   let d = 0;
@@ -441,7 +432,7 @@ export function Simulator() {
         )}
 
         <Card>
-          <CardHeader title="Bending section" subtitle="Thumb lever: up to +180° / −130°" icon={<Gauge className="h-4 w-4" />} />
+          <CardHeader title="Bending section" subtitle="BF-H190-type lever: up to +210° / −130°" icon={<Gauge className="h-4 w-4" />} />
           <div className="flex items-center gap-4 p-4">
             <div className="relative h-36 w-3 rounded-full bg-panel-2">
               <div className="absolute inset-x-0 h-px bg-slate-500" style={{ bottom: `${zeroPct}%` }} />
