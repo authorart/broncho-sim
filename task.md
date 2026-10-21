@@ -30,7 +30,7 @@ Spec: `broncho-sim-prompt.md` · Primary reference: Ernst A. (ed.) *Introduction
 - [x] `/quiz`: MCQ engine, rationale + citations, generated images, performance dashboard
 - [x] `npm run build` + lint clean
 - [x] git init, `.gitignore` (incl. `references/`), create public GitHub repo, push
-- [ ] Deploy to Vercel, verify live URL
+- [x] Deploy to Vercel, verify live URL — https://broncho-sim.vercel.app
 
 ## Notes
 - Next.js 16.4 / React 19 / Tailwind 4 / R3F 9 / drei 10 / Zustand 5. `cacheComponents` disabled (static app; avoids hidden WebGL contexts).

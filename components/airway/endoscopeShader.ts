@@ -160,7 +160,7 @@ void main() {
       float dist = length(l);
       l /= dist;
       // Near field is compressed (auto-brightness control); far field falls off ~1/d.
-      float atten = uLight * (55.0 / (dist * dist + 28.0) + 1.5 / (dist + 6.0));
+      float atten = uLight * (55.0 / (dist * dist + 28.0) + 2.3 / (dist + 6.0));
       float diff = max(dot(n, l), 0.0);
       vec3 hv = normalize(l - rd);
       float spec = pow(max(dot(n, hv), 0.0), 70.0);
