@@ -129,7 +129,7 @@ export const STANDARD_VIEWS: StandardView[] = [
     id: "lbasal",
     label: "Left lower lobe basal group",
     focus: "LB-basal",
-    expected: "Stacked orifices: B8 (B7+8) at the top, B9 in the middle, B10 at the bottom.",
+    expected: "Stacked orifices: B8 at the top, B9 in the middle, B10 at the bottom (no B7 on the left).",
     pose: v("LB-basal", 4),
   },
 ];

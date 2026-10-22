@@ -44,6 +44,8 @@ import {
 import { useProgress } from "@/lib/store/progress";
 import { STANDARD_VIEWS } from "@/lib/airway/views";
 import { cn, formatSeconds } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
+import { useContent } from "@/lib/i18n/content";
 
 type Mode = "free" | "navigate" | "identify";
 
@@ -106,6 +108,8 @@ export function Simulator() {
   const [options, setOptions] = useState<string[]>([]);
   const [hud, setHud] = useState<Hud>({ location: "Trachea", level: "trachea", depthCm: 18, flex: 0, roll: 0, contacts: 0, wedged: false, time: 0 });
   const recordSim = useProgress((s) => s.recordSim);
+  const l = useL();
+  const content = useContent();
 
   const taskRef = useRef({ mode, target, taskState });
   useEffect(() => {
@@ -280,21 +284,21 @@ export function Simulator() {
             value={mode}
             onChange={startMode}
             options={[
-              { value: "free", label: <><Eye className="h-3.5 w-3.5" />Free exploration</> },
-              { value: "navigate", label: <><Target className="h-3.5 w-3.5" />Task: navigate</> },
-              { value: "identify", label: <><Crosshair className="h-3.5 w-3.5" />Task: identify</> },
+              { value: "free", label: <><Eye className="h-3.5 w-3.5" />{l("Free exploration", "สำรวจอิสระ")}</> },
+              { value: "navigate", label: <><Target className="h-3.5 w-3.5" />{l("Task: navigate", "โจทย์: นำทาง")}</> },
+              { value: "identify", label: <><Crosshair className="h-3.5 w-3.5" />{l("Task: identify", "โจทย์: ระบุ segment")}</> },
             ]}
           />
           <div className="flex items-center gap-2">
             {mode === "free" && (
               <Button size="sm" variant="ghost" onClick={() => setAnnotations((a) => !a)} aria-pressed={annotations}>
                 {annotations ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                Labels
+                {l("Labels", "ป้ายชื่อ")}
               </Button>
             )}
             <Button size="sm" variant="ghost" onClick={() => setQuality((q) => (q === "high" ? "low" : "high"))}>
               <Gauge className="h-3.5 w-3.5" />
-              {quality === "high" ? "High quality" : "Performance"}
+              {quality === "high" ? l("High quality", "คุณภาพสูง") : l("Performance", "ลื่นไหล")}
             </Button>
           </div>
         </div>
@@ -328,33 +332,35 @@ export function Simulator() {
             className="h-full w-full"
           >
             <div className="pointer-events-none absolute left-3 top-3 space-y-1 font-mono text-[11px] text-cyan-200/90">
-              <p>{hideLocation ? "location hidden" : hud.location}</p>
+              <p>{hideLocation ? l("location hidden", "ซ่อนตำแหน่ง") : hud.location}</p>
               <p className="text-slate-400">INS {hud.depthCm.toFixed(1)} cm · FLX {hud.flex > 0 ? "+" : ""}{hud.flex.toFixed(0)}°</p>
             </div>
             <div className="pointer-events-none absolute right-3 top-3 text-right font-mono text-[11px] text-slate-300/90">
               <p>{formatSeconds(hud.time)}</p>
-              <p className={cn(hud.contacts > 0 && "text-rose-300")}>wall contacts {hud.contacts}</p>
+              <p className={cn(hud.contacts > 0 && "text-rose-300")}>{l("wall contacts", "ชนผนัง")} {hud.contacts}</p>
             </div>
             {hud.wedged && (
               <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 rounded bg-amber-500/20 px-2 py-1 font-mono text-[11px] text-amber-200 ring-1 ring-amber-400/40">
-                WEDGED — lumen narrower than scope
+                {l("WEDGED — lumen narrower than scope (withdraw to back out)", "WEDGED — lumen แคบกว่ากล้อง (ถอยกล้องเพื่อออก)")}
               </div>
             )}
           </EndoscopeView>
           {mode === "navigate" && taskState !== "running" && (
             <Overlay>
               {result ? (
-                <ResultCard result={result} target={target!} onNext={newNavigateTask} />
+                <ResultCard result={result} target={target!} onNext={newNavigateTask} l={l} />
               ) : (
                 <div className="max-w-sm text-center">
                   <Target className="mx-auto h-8 w-8 text-amber-300" />
-                  <h3 className="mt-2 text-lg font-semibold">Navigation task</h3>
+                  <h3 className="mt-2 text-lg font-semibold">{l("Navigation task", "โจทย์นำทาง")}</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    A random segmental bronchus is assigned. Drive from the subglottis to its lumen. Scored on time
-                    against par and wall contacts (mucosal trauma).
+                    {l(
+                      "A random segmental bronchus is assigned. Drive from the subglottis to its lumen. Scored on time against par and wall contacts (mucosal trauma).",
+                      "ระบบจะสุ่ม segmental bronchus เป้าหมาย ให้บังคับกล้องจาก subglottis ไปจนเข้า lumen ของ segment นั้น คะแนนคิดจากเวลาเทียบกับเวลามาตรฐาน และจำนวนครั้งที่ชนผนัง (การบาดเจ็บของเยื่อบุ)",
+                    )}
                   </p>
                   <Button variant="primary" className="mt-4" onClick={newNavigateTask}>
-                    Start task
+                    {l("Start task", "เริ่มโจทย์")}
                   </Button>
                 </div>
               )}
@@ -364,13 +370,15 @@ export function Simulator() {
             <Overlay>
               <div className="max-w-sm text-center">
                 <Crosshair className="mx-auto h-8 w-8 text-cyan-300" />
-                <h3 className="mt-2 text-lg font-semibold">Identification task</h3>
+                <h3 className="mt-2 text-lg font-semibold">{l("Identification task", "โจทย์ระบุ segment")}</h3>
                 <p className="mt-1 text-sm text-slate-300">
-                  You will be parked in front of a division with no labels. Name the segmental orifice in the
-                  <b> centre of the view</b>.
+                  {l(
+                    "You will be parked in front of a division with no labels. Name the segmental orifice in the centre of the view.",
+                    "กล้องจะถูกวางไว้หน้าจุดแยกโดยไม่มีป้ายชื่อ ให้ระบุชื่อรูเปิด segment ที่อยู่ตรงกลางภาพ",
+                  )}
                 </p>
                 <Button variant="primary" className="mt-4" onClick={newIdentifyTask}>
-                  Start task
+                  {l("Start task", "เริ่มโจทย์")}
                 </Button>
               </div>
             </Overlay>
@@ -382,23 +390,25 @@ export function Simulator() {
 
         {/* On-screen controls (touch friendly) */}
         <div className="mx-auto grid w-full max-w-[760px] grid-cols-3 gap-2 sm:grid-cols-6">
-          <CtrlBtn label="Advance" hint="W / ↑ / wheel" icon={<ArrowUp className="h-4 w-4" />} patch={{ advance: 1 }} onHold={setHold} disabled={identifyFrozen} />
-          <CtrlBtn label="Withdraw" hint="S / ↓" icon={<ArrowDown className="h-4 w-4" />} patch={{ advance: -1 }} onHold={setHold} disabled={identifyFrozen} />
-          <CtrlBtn label="Tip up" hint="Q · drag ↑" icon={<ChevronsUp className="h-4 w-4" />} patch={{ flex: 1 }} onHold={setHold} disabled={identifyFrozen} />
-          <CtrlBtn label="Tip down" hint="E · drag ↓" icon={<ChevronsDown className="h-4 w-4" />} patch={{ flex: -1 }} onHold={setHold} disabled={identifyFrozen} />
-          <CtrlBtn label="Rotate CCW" hint="A / ←" icon={<RotateCcw className="h-4 w-4" />} patch={{ roll: -1 }} onHold={setHold} disabled={identifyFrozen} />
-          <CtrlBtn label="Rotate CW" hint="D / →" icon={<RotateCw className="h-4 w-4" />} patch={{ roll: 1 }} onHold={setHold} disabled={identifyFrozen} />
+          <CtrlBtn label={l("Advance", "ดันกล้องเข้า")} hint="W / ↑ / wheel" icon={<ArrowUp className="h-4 w-4" />} patch={{ advance: 1 }} onHold={setHold} disabled={identifyFrozen} />
+          <CtrlBtn label={l("Withdraw", "ถอยกล้อง")} hint="S / ↓" icon={<ArrowDown className="h-4 w-4" />} patch={{ advance: -1 }} onHold={setHold} disabled={identifyFrozen} />
+          <CtrlBtn label={l("Tip up", "งอปลายขึ้น")} hint="Q · drag ↑" icon={<ChevronsUp className="h-4 w-4" />} patch={{ flex: 1 }} onHold={setHold} disabled={identifyFrozen} />
+          <CtrlBtn label={l("Tip down", "งอปลายลง")} hint="E · drag ↓" icon={<ChevronsDown className="h-4 w-4" />} patch={{ flex: -1 }} onHold={setHold} disabled={identifyFrozen} />
+          <CtrlBtn label={l("Rotate CCW", "หมุนทวนเข็ม")} hint="A / ←" icon={<RotateCcw className="h-4 w-4" />} patch={{ roll: -1 }} onHold={setHold} disabled={identifyFrozen} />
+          <CtrlBtn label={l("Rotate CW", "หมุนตามเข็ม")} hint="D / →" icon={<RotateCw className="h-4 w-4" />} patch={{ roll: 1 }} onHold={setHold} disabled={identifyFrozen} />
         </div>
         <p className="text-center text-xs text-muted">
-          Space = straighten tip · Shift = fine advance · drag on the image to flex/rotate. Image convention: operator
-          behind the head — anterior wall at top, patient&apos;s right on screen right.
+          {l(
+            "Space = straighten tip · Shift = fine advance · drag on the image to flex/rotate. Withdrawing retraces the inserted path, so you can always back out to the trachea. Image convention: operator behind the head — anterior wall at top, patient's right on screen right.",
+            "Space = คืนปลายกล้องตรง · Shift = ดันช้าๆ · ลากบนภาพเพื่องอ/หมุน การถอยกล้องจะย้อนตามเส้นทางที่สอดเข้าไป จึงถอยกลับถึง trachea ได้เสมอ ทิศของภาพ: ผู้ส่องยืนด้านศีรษะผู้ป่วย — ผนังด้านหน้าอยู่บน ขวาของผู้ป่วยอยู่ขวาของจอ",
+          )}
         </p>
       </div>
 
       <div className="flex flex-col gap-4">
         {mode === "identify" && taskState !== "idle" && (
           <Card>
-            <CardHeader title="Which segment is in the centre?" icon={<Crosshair className="h-4 w-4" />} />
+            <CardHeader title={l("Which segment is in the centre?", "Segment ที่อยู่ตรงกลางคืออะไร?")} icon={<Crosshair className="h-4 w-4" />} />
             <div className="grid grid-cols-2 gap-2 p-4">
               {options.map((o) => {
                 const isAns = result && o === target;
@@ -422,17 +432,17 @@ export function Simulator() {
             </div>
             {result && (
               <div className="space-y-3 border-t border-line p-4">
-                <Callout tone={result.success ? "ok" : "danger"} title={result.success ? "Correct" : `Incorrect — this was ${target}`}>
-                  {SEG_BY_ID[target!].def?.description}
+                <Callout tone={result.success ? "ok" : "danger"} title={result.success ? l("Correct", "ถูกต้อง") : l(`Incorrect — this was ${target}`, `ไม่ถูกต้อง — คำตอบคือ ${target}`)}>
+                  {content.airway(SEG_BY_ID[target!].def!).description}
                 </Callout>
-                <Button variant="primary" onClick={newIdentifyTask}>Next airway</Button>
+                <Button variant="primary" onClick={newIdentifyTask}>{l("Next airway", "ข้อถัดไป")}</Button>
               </div>
             )}
           </Card>
         )}
 
         <Card>
-          <CardHeader title="Bending section" subtitle="BF-H190-type lever: up to +210° / −130°" icon={<Gauge className="h-4 w-4" />} />
+          <CardHeader title={l("Bending section", "Bending section (ปลายกล้อง)")} subtitle={l("BF-H190-type lever: up to +210° / −130°", "คันโยกแบบ BF-H190: งอได้ +210° / −130°")} icon={<Gauge className="h-4 w-4" />} />
           <div className="flex items-center gap-4 p-4">
             <div className="relative h-36 w-3 rounded-full bg-panel-2">
               <div className="absolute inset-x-0 h-px bg-slate-500" style={{ bottom: `${zeroPct}%` }} />
@@ -442,18 +452,24 @@ export function Simulator() {
               />
             </div>
             <div className="grid flex-1 grid-cols-2 gap-2 text-sm">
-              <Readout label="Tip flex" value={`${hud.flex > 0 ? "+" : ""}${hud.flex.toFixed(0)}°`} />
-              <Readout label="Rotation" value={`${hud.roll > 0 ? "+" : ""}${hud.roll.toFixed(0)}°`} />
-              <Readout label="Insertion" value={`${hud.depthCm.toFixed(1)} cm`} />
-              <Readout label="Contacts" value={String(hud.contacts)} tone={hud.contacts ? "danger" : undefined} />
+              <Readout label={l("Tip flex", "มุมงอปลาย")} value={`${hud.flex > 0 ? "+" : ""}${hud.flex.toFixed(0)}°`} />
+              <Readout label={l("Rotation", "การหมุน")} value={`${hud.roll > 0 ? "+" : ""}${hud.roll.toFixed(0)}°`} />
+              <Readout label={l("Insertion", "ระยะสอด")} value={`${hud.depthCm.toFixed(1)} cm`} />
+              <Readout label={l("Wall contacts", "ชนผนัง")} value={String(hud.contacts)} tone={hud.contacts ? "danger" : undefined} />
             </div>
           </div>
+          <p className="border-t border-line px-4 py-2.5 text-[11px] leading-relaxed text-muted">
+            {l(
+              "Wall contact = the tip is driven into the mucosa while advancing (the image flashes red). It counts against task scores because in real patients it causes cough, mucosal trauma and bleeding. Sliding gently along the wall is not counted.",
+              "ชนผนัง = ปลายกล้องถูกดันเข้าหาเยื่อบุขณะดันกล้อง (ภาพจะกะพริบสีแดง) ถูกหักคะแนนในโจทย์ เพราะในผู้ป่วยจริงทำให้ไอ เยื่อบุบาดเจ็บ และเลือดออก การไถลเบาๆ ไปตามผนังไม่นับ",
+            )}
+          </p>
         </Card>
 
         <Card className={cn("overflow-hidden", hideLocation && "hidden")}>
           <CardHeader
-            title="Position (coronal)"
-            subtitle={mode === "navigate" && target ? `Target: ${SEG_BY_ID[target].name}` : hud.location}
+            title={l("Position (coronal)", "ตำแหน่ง (coronal)")}
+            subtitle={mode === "navigate" && target ? `${l("Target", "เป้าหมาย")}: ${SEG_BY_ID[target].name}` : hud.location}
             icon={<MapPin className="h-4 w-4" />}
             action={mode === "navigate" && target ? <Badge tone="warn">{target}</Badge> : null}
           />
@@ -464,11 +480,11 @@ export function Simulator() {
 
         {mode === "free" && (
           <Card>
-            <CardHeader title="Jump to landmark" icon={<MapPin className="h-4 w-4" />} />
+            <CardHeader title={l("Jump to landmark", "ไปยังจุดสังเกต")} icon={<MapPin className="h-4 w-4" />} />
             <div className="flex flex-wrap gap-1.5 p-4">
-              {LANDMARKS.map((l) => (
-                <Button key={l.label} size="sm" onClick={() => resetTo(l.pose())}>
-                  {l.label}
+              {LANDMARKS.map((v) => (
+                <Button key={v.label} size="sm" onClick={() => resetTo(v.pose())}>
+                  {"id" in v ? content.view(v as (typeof STANDARD_VIEWS)[number]).label : v.label}
                 </Button>
               ))}
             </div>
@@ -477,11 +493,11 @@ export function Simulator() {
         {mode === "navigate" && taskState === "running" && (
           <Card className="p-4">
             <p className="text-sm">
-              Navigate to <b className="text-amber-300">{SEG_BY_ID[target!].name}</b>
+              {l("Navigate to", "นำทางไปยัง")} <b className="text-amber-300">{SEG_BY_ID[target!].name}</b>
             </p>
-            <p className="mt-1 text-xs text-muted">Par time {12 + depthOf(target!) * 5}s · −8 per wall contact</p>
+            <p className="mt-1 text-xs text-muted">{l(`Par time ${12 + depthOf(target!) * 5}s · −8 per wall contact`, `เวลามาตรฐาน ${12 + depthOf(target!) * 5} วินาที · ชนผนังหักครั้งละ 8 คะแนน`)}</p>
             <Button size="sm" variant="danger" className="mt-3" onClick={() => finishNavigate(false)}>
-              Give up
+              {l("Give up", "ยอมแพ้")}
             </Button>
           </Card>
         )}
@@ -498,22 +514,24 @@ function ResultCard({
   result,
   target,
   onNext,
+  l,
 }: {
   result: { success: boolean; score: number; time: number; contacts: number };
   target: string;
   onNext: () => void;
+  l: (en: string, th?: string) => string;
 }) {
   return (
     <div className="w-full max-w-sm rounded-xl border border-line bg-panel p-5 text-center">
       <Trophy className={cn("mx-auto h-8 w-8", result.success ? "text-amber-300" : "text-slate-500")} />
-      <h3 className="mt-2 text-lg font-semibold">{result.success ? `Reached ${target}` : "Task abandoned"}</h3>
+      <h3 className="mt-2 text-lg font-semibold">{result.success ? l(`Reached ${target}`, `ถึง ${target} แล้ว`) : l("Task abandoned", "ยกเลิกโจทย์")}</h3>
       <p className="mt-1 font-mono text-4xl font-bold text-cyan-300">{result.score}</p>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <Readout label="Time" value={formatSeconds(result.time)} icon={<Timer className="h-3 w-3" />} />
-        <Readout label="Wall contacts" value={String(result.contacts)} tone={result.contacts ? "danger" : undefined} />
+        <Readout label={l("Time", "เวลา")} value={formatSeconds(result.time)} icon={<Timer className="h-3 w-3" />} />
+        <Readout label={l("Wall contacts", "ชนผนัง")} value={String(result.contacts)} tone={result.contacts ? "danger" : undefined} />
       </div>
       <Button variant="primary" className="mt-4" onClick={onNext}>
-        Next target
+        {l("Next target", "เป้าหมายถัดไป")}
       </Button>
     </div>
   );

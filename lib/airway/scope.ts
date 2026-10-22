@@ -4,6 +4,7 @@ import {
   capsuleDist,
   cross,
   dot,
+  len,
   lumenGradient,
   lumenSDF,
   nearbySegments,
@@ -12,6 +13,7 @@ import {
   rotate,
   scale,
   sub,
+  treeDepth,
   type Pose,
   type V3,
 } from "./geometry";
@@ -51,6 +53,8 @@ export type ScopeState = {
   lastContactAt: number;
   flash: number;
   time: number;
+  /** recorded tip positions along the insertion path (oldest first) */
+  path: V3[];
 };
 
 export const emptyInput = (): ScopeInput => ({ advance: 0, roll: 0, flex: 0, straighten: false, slow: false });
@@ -62,12 +66,14 @@ export function createScope(pose: Pose = START_POSE): ScopeState {
     headingUp: norm(pose.up),
     flex: 0,
     rollDeg: 0,
-    insertedMm: 0,
+    // a scope placed at a landmark is already inserted that far down the airway
+    insertedMm: Math.max(0, treeDepth(pose.pos)),
     contacts: 0,
     wedged: false,
     lastContactAt: -10,
     flash: 0,
     time: 0,
+    path: [],
   };
 }
 
@@ -82,6 +88,11 @@ export function scopeView(s: ScopeState): Pose {
 
 /** Distance from the start of the trachea that the user may not withdraw beyond. */
 const MIN_INSERT = -6;
+/** Spacing of the recorded insertion path (mm). */
+const CRUMB = 0.6;
+/** Contact is registered when the tip touches the wall while being pushed into it. */
+const CONTACT_PUSH = 0.3;
+const CONTACT_COOLDOWN = 0.9;
 
 export function stepScope(s: ScopeState, input: ScopeInput, dt: number): ScopeState {
   s.time += dt;
@@ -102,56 +113,107 @@ export function stepScope(s: ScopeState, input: ScopeInput, dt: number): ScopeSt
   const speed = input.slow ? 6 : 16;
   const ds = input.advance * speed * dt;
   s.wedged = false;
-  if (ds !== 0) {
-    if (s.insertedMm + ds < MIN_INSERT) return s;
-    const view = scopeView(s);
-    const segs = nearbySegments(s.pos, 16);
-    let next = add(s.pos, scale(view.forward, ds));
-    let w = -lumenSDF(next, segs);
+  if (ds > 0) advance(s, ds);
+  else if (ds < 0) withdraw(s, -ds);
+  // keep up-vector orthonormal
+  s.headingUp = norm(sub(s.headingUp, scale(s.heading, dot(s.headingUp, s.heading))));
+  return s;
+}
 
+function registerContact(s: ScopeState) {
+  if (s.time - s.lastContactAt < CONTACT_COOLDOWN) return;
+  s.contacts += 1;
+  s.lastContactAt = s.time;
+  s.flash = 1;
+}
+
+function advance(s: ScopeState, ds: number) {
+  const view = scopeView(s);
+  const segs = nearbySegments(s.pos, 16);
+  let next = add(s.pos, scale(view.forward, ds));
+  let w = -lumenSDF(next, segs);
+
+  if (w < TIP_RADIUS + 0.05) {
+    const local = nearestSegment(next);
+    const [, h] = capsuleDist(next, local.seg);
+    const localR = local.seg.r1 + (local.seg.r2 - local.seg.r1) * h;
+    if (localR < TIP_RADIUS + 0.15) {
+      // Lumen narrower than the scope: wedge position (tip fills the airway).
+      s.wedged = true;
+      return;
+    }
+    const g = lumenGradient(next, segs); // points out of the lumen (into the wall)
+    // Tip driven into the mucosa (not just sliding along it) = wall contact.
+    if (dot(view.forward, g) > CONTACT_PUSH) registerContact(s);
     if (w < TIP_RADIUS) {
-      const local = nearestSegment(next);
-      const [, h] = capsuleDist(next, local.seg);
-      const localR = local.seg.r1 + (local.seg.r2 - local.seg.r1) * h;
-      if (ds > 0 && localR < TIP_RADIUS + 0.15) {
-        // Lumen narrower than the scope: wedge position (tip fills the airway).
-        s.wedged = true;
-        return s;
-      }
       // Push back toward the lumen centre.
-      const g = lumenGradient(next, segs); // points out of lumen
-      const pen = TIP_RADIUS - w;
-      next = sub(next, scale(g, pen));
+      next = sub(next, scale(g, TIP_RADIUS - w));
       w = -lumenSDF(next, segs);
-      if (ds > 0 && pen > 0.35 && s.time - s.lastContactAt > 0.8) {
-        s.contacts += 1;
-        s.lastContactAt = s.time;
-        s.flash = 1;
-      }
-      if (w < TIP_RADIUS * 0.5) return s; // could not resolve — refuse move
+      if (w < TIP_RADIUS * 0.5) return; // could not resolve — refuse move
       // Tip jammed into a lumen barely wider than the scope: it has wedged rather than advanced.
       const progress = dot(sub(next, s.pos), view.forward);
-      if (ds > 0 && progress < 0.25 * ds && localR < TIP_RADIUS + 0.9) {
+      if (progress < 0.25 * ds && localR < TIP_RADIUS + 0.9) {
         s.wedged = true;
-        return s;
+        return;
       }
-      // Passive compliance: the wall guides the shaft along the lumen.
-      const axis = local.seg.dir;
-      const sign = dot(axis, s.heading) >= 0 ? 1 : -1;
-      s.heading = norm(add(scale(s.heading, 0.92), scale(axis, 0.08 * sign)));
     }
+    // Passive compliance: the wall guides the shaft along the lumen.
+    const axis = local.seg.dir;
+    const sign = dot(axis, s.heading) >= 0 ? 1 : -1;
+    s.heading = norm(add(scale(s.heading, 0.92), scale(axis, 0.08 * sign)));
+  }
 
-    // Follow-the-leader: the shaft heading drifts toward where the tip points.
-    if (ds > 0) {
-      const k = Math.min(1, ds / BEND_LENGTH);
-      s.heading = norm(add(scale(s.heading, 1 - k), scale(view.forward, k)));
+  // Follow-the-leader: the shaft heading drifts toward where the tip points.
+  const k = Math.min(1, ds / BEND_LENGTH);
+  s.heading = norm(add(scale(s.heading, 1 - k), scale(view.forward, k)));
+
+  // Record the insertion path so the scope can be withdrawn along it.
+  const last = s.path[s.path.length - 1];
+  if (!last || len(sub(s.pos, last)) >= CRUMB) {
+    s.path.push([...s.pos] as V3);
+    if (s.path.length > 6000) s.path.shift();
+  }
+  s.insertedMm += Math.max(0, dot(sub(next, s.pos), view.forward));
+  s.pos = next;
+}
+
+/**
+ * Withdrawal: the shaft retraces the path it was inserted along (as a real scope does), so the tip
+ * can always come back to the trachea — even out of a wedged subsegment. If there is no recorded
+ * path (e.g. after jumping to a landmark) the tip slides back along the airway centre line.
+ */
+function withdraw(s: ScopeState, dist: number) {
+  let d = Math.min(dist, s.insertedMm - MIN_INSERT);
+  if (d <= 0) return;
+  let moved = 0;
+  while (d > 1e-6 && s.path.length) {
+    const target = s.path[s.path.length - 1];
+    const v = sub(target, s.pos);
+    const L = len(v);
+    if (L > 1e-6) s.heading = norm(add(scale(s.heading, 0.85), scale(v, -0.15 / L)));
+    if (L <= d) {
+      s.pos = target;
+      s.path.pop();
+      d -= L;
+      moved += L;
+    } else {
+      s.pos = add(s.pos, scale(v, d / L));
+      moved += d;
+      d = 0;
     }
-    // keep up-vector orthonormal
-    s.headingUp = norm(sub(s.headingUp, scale(s.heading, dot(s.headingUp, s.heading))));
-    s.insertedMm += dot(sub(next, s.pos), view.forward);
+  }
+  if (d > 1e-6) {
+    // No recorded path: back out along the nearest airway's axis, re-centring the tip.
+    const { seg } = nearestSegment(s.pos);
+    let next = sub(s.pos, scale(seg.dir, d));
+    const [, h] = capsuleDist(next, seg);
+    const axisPt = add(seg.a, scale(sub(seg.b, seg.a), h));
+    next = add(next, scale(sub(axisPt, next), 0.25));
+    s.heading = norm(add(scale(s.heading, 0.9), scale(seg.dir, 0.1)));
+    moved += d;
     s.pos = next;
   }
-  return s;
+  s.insertedMm -= moved;
 }
 
 /** Insertion depth from the incisors, approximating ~18 cm teeth-to-subglottis at the start pose. */

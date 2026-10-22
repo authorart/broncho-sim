@@ -235,15 +235,30 @@ export function poseLookingInto(segId: string, back: number, lookAt?: string, up
 export const SUPERIOR_V: V3 = SUPERIOR;
 export const ANTERIOR_V: V3 = ANTERIOR;
 
+const START_INSERT_OFFSET = 8;
+
 export const START_POSE: Pose = (() => {
   const t = SEG_BY_ID.trachea;
-  const pos = add(t.a, scale(t.dir, 8));
+  const pos = add(t.a, scale(t.dir, START_INSERT_OFFSET));
   return { pos, forward: t.dir, up: orthoUp(t.dir) };
 })();
 
 /** Frontal (coronal) projection for 2D maps: viewer's left = patient's right. */
 export function frontal(p: V3): [number, number] {
   return [p[0], -p[1]];
+}
+
+/** Centre-line distance (mm) from the start pose down the tree to point p. */
+export function treeDepth(p: V3): number {
+  const { seg } = nearestSegment(p);
+  const [, h] = capsuleDist(p, seg);
+  let d = h * seg.length;
+  let cur = seg.parent ? SEG_BY_ID[seg.parent] : undefined;
+  while (cur) {
+    d += cur.length;
+    cur = cur.parent ? SEG_BY_ID[cur.parent] : undefined;
+  }
+  return d - START_INSERT_OFFSET;
 }
 
 /** Axis point at fraction t of a segment. */

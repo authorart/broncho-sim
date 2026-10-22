@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Card, CardHeader } from "@/components/ui/primitives";
 import { Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
+import { useContent } from "@/lib/i18n/content";
 
 const PARTS = {
   epiglottis: "Epiglottis — pass the scope posterior to its tip; valleculae lie in front of it (foreign-body traps).",
@@ -18,11 +20,13 @@ type PartKey = keyof typeof PARTS;
 /** Schematic glottis as seen from above (operator behind the head, anterior at top). */
 export function LarynxDiagram() {
   const [part, setPart] = useState<PartKey>("cords");
+  const l = useL();
+  const content = useContent();
   const cls = (k: PartKey) =>
     cn("cursor-pointer transition-opacity", part === k ? "opacity-100" : "opacity-70 hover:opacity-100");
   return (
     <Card>
-      <CardHeader title="Larynx & glottis (entry point)" subtitle="Click a structure" icon={<Mic className="h-4 w-4" />} />
+      <CardHeader title={l("Larynx & glottis (entry point)", "Larynx และ glottis (ทางเข้า)")} subtitle={l("Click a structure", "คลิกที่โครงสร้าง")} icon={<Mic className="h-4 w-4" />} />
       <div className="grid gap-3 p-4 sm:grid-cols-[180px_1fr] xl:grid-cols-1">
         <svg viewBox="0 0 200 200" className="mx-auto w-48" role="img" aria-label="Schematic laryngeal inlet">
           <circle cx="100" cy="100" r="96" fill="#1a0b0b" />
@@ -49,7 +53,7 @@ export function LarynxDiagram() {
           <text x="100" y="196" textAnchor="middle" className="fill-slate-400 text-[9px]">posterior</text>
           <text x="100" y="12" textAnchor="middle" className="fill-slate-400 text-[9px]">anterior</text>
         </svg>
-        <p className="text-[13px] leading-relaxed text-slate-300">{PARTS[part]}</p>
+        <p className="text-[13px] leading-relaxed text-slate-300">{content.larynx(part, PARTS[part])}</p>
       </div>
     </Card>
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Thai_Looped } from "next/font/google";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { ProgressHydrator } from "@/components/layout/ProgressHydrator";
 import "./globals.css";
@@ -14,6 +14,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Looped Thai face: easiest to read at small UI sizes; Latin text keeps Geist.
+const thai = Noto_Sans_Thai_Looped({
+  variable: "--font-thai",
+  subsets: ["thai"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "BronchoSim — Interactive Bronchoscopy Training",
@@ -21,6 +29,8 @@ export const metadata: Metadata = {
   },
   description:
     "Interactive bronchoscopy & interventional pulmonology training: 3D airway atlas, virtual bronchoscopy simulator, equipment guide, procedural trainers and self-assessment.",
+  authors: [{ name: "Sirot Jantharaksa, MD" }],
+  creator: "Sirot Jantharaksa, MD",
 };
 
 export const viewport: Viewport = {
@@ -29,7 +39,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${thai.variable} h-full antialiased`}>
       <body className="min-h-full bg-background font-sans text-foreground">
         <ProgressHydrator />
         <div className="flex min-h-dvh flex-col lg:flex-row">

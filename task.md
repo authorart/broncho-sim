@@ -39,9 +39,17 @@ Spec: `broncho-sim-prompt.md` · Primary reference: Ernst A. (ed.) *Introduction
 
 ## Round 2 — realism fixes (user feedback: anatomy views and equipment not realistic)
 - [x] Study new references: Olympus anatomy poster, BF-190 manual, EBUS-TBNA and BF-UCP190F brochures, bronchoscopyatlas.ch normal anatomy (28 photos), VUmc segmental anatomy video (≈50 annotated frames)
-- [x] Rebuild airway tree: B6 at RML level, B7 medial-first, B9+10 common trunks, left B7+8, a/b/c subsegments
+- [x] Rebuild airway tree: B6 at RML level, B7 medial-first, B9+10 common trunks, left lower lobe without B7, a/b/c subsegments
 - [x] Endoscopic rendering: octagonal Olympus frame, salmon wet mucosa, capillaries, pale rings, striated membranous wall, sharper spurs, hue-preserving exposure
 - [x] Standard views calibrated to the poster orientations (shared by atlas, simulator, quiz)
 - [x] Scope physics: BF-H190 tip (5.5 mm), 210°/130° angulation, jam-based wedging at subsegmental level
 - [x] Equipment redrawn from the manual/brochures: BF-190 control section and rotation ring, model specs; BF-UC190F / UCP190F tip (UP-facing transducer, oblique optics, 65° sector), ViziShot needle handle; radial EBUS set-up
 - [x] Build, verify, commit, deploy
+
+## Round 3 — corrections and Thai language (user feedback)
+- [x] Remove LB7: the left lower lobe basal trunk now has LB8 and LB9+10 only (data, views, quiz rationale, glossary)
+- [x] Withdrawal: the scope records its insertion path and backs out along it (falling back to the centre line), so it returns to the trachea from the deepest lower-lobe segments. Teleports set the insertion depth from the tree
+- [x] Wall contacts: counted when the tip is driven into the mucosa while advancing (red flash, 0.9 s debounce), with an explanation in the simulator
+- [x] Copyright "© 2026 Sirot Jantharaksa, MD" at the bottom-left of the sidebar, plus the mobile menu, home footer, references and site metadata
+- [x] Language switch EN / ไทย (persisted). Thai uses Noto Sans Thai Looped with a taller line height. Medical and technical terms stay in English. All pages, mini-sims, the quiz (40 questions) and the simulator are translated
+- [x] Lint, build, screenshot check in both languages, commit, deploy

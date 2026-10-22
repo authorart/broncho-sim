@@ -5,19 +5,20 @@ import { Scissors } from "lucide-react";
 import { Button } from "@/components/ui/primitives";
 import { SimShell, type SimLog } from "../SimShell";
 import { cn } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
 
 /* ──────────────────────────── Brush: sequencing ──────────────────────────── */
 
 type BrushState = { inScope: boolean; sheathOut: boolean; brushOut: boolean; brushed: boolean };
 
 const BRUSH_ACTIONS = [
-  { id: "insert", label: "Insert brush (retracted) into the working channel" },
-  { id: "sheath", label: "Advance sheath beyond the scope tip" },
-  { id: "extend", label: "Extend brush onto the lesion" },
-  { id: "brush", label: "Brush lesion: vigorous to-and-fro strokes" },
-  { id: "retract", label: "Retract brush into sheath" },
-  { id: "withdraw", label: "Withdraw sheath + brush through channel" },
-  { id: "smear", label: "Smear slides / agitate brush in fixative" },
+  { id: "insert", label: "Insert brush (retracted) into the working channel", th: "สอดแปรง (เก็บใน sheath) เข้า working channel" },
+  { id: "sheath", label: "Advance sheath beyond the scope tip", th: "ดัน sheath ออกเลยปลายกล้อง" },
+  { id: "extend", label: "Extend brush onto the lesion", th: "ดันแปรงออกไปที่รอยโรค" },
+  { id: "brush", label: "Brush lesion: vigorous to-and-fro strokes", th: "ขัดรอยโรค: ไป-มาแรงๆ" },
+  { id: "retract", label: "Retract brush into sheath", th: "ดึงแปรงกลับเข้า sheath" },
+  { id: "withdraw", label: "Withdraw sheath + brush through channel", th: "ถอด sheath + แปรงออกทาง channel" },
+  { id: "smear", label: "Smear slides / agitate brush in fixative", th: "ป้ายสไลด์ / เขย่าแปรงใน fixative" },
 ] as const;
 type BrushAction = (typeof BRUSH_ACTIONS)[number]["id"];
 const SCRAMBLED = [5, 3, 0, 6, 2, 4, 1].map((i) => BRUSH_ACTIONS[i]);
@@ -29,7 +30,8 @@ export function BrushSim() {
   const [score, setScore] = useState<number | null>(null);
   // Fixed scrambled order: identical on server and client, and not the answer key.
   const shuffled = SCRAMBLED;
-  const push = (l: SimLog) => setLog((x) => [l, ...x]);
+  const l = useL();
+  const push = (e: SimLog) => setLog((x) => [e, ...x]);
 
   const fail = (text: string) => {
     setErrors((e) => e + 1);
@@ -40,36 +42,36 @@ export function BrushSim() {
     if (score !== null) return;
     switch (a) {
       case "insert":
-        if (st.inScope) return fail("Brush is already in the channel.");
+        if (st.inScope) return fail(l("Brush is already in the channel.", "แปรงอยู่ใน channel แล้ว"));
         setSt({ ...st, inScope: true });
-        return push({ tone: "ok", text: "Sheathed brush passed through the channel — bristles protected." });
+        return push({ tone: "ok", text: l("Sheathed brush passed through the channel — bristles protected.", "สอดแปรงใน sheath ผ่าน channel แล้ว — ขนแปรงได้รับการปกป้อง") });
       case "sheath":
-        if (!st.inScope) return fail("Nothing in the channel yet.");
+        if (!st.inScope) return fail(l("Nothing in the channel yet.", "ยังไม่มีอุปกรณ์ใน channel"));
         setSt({ ...st, sheathOut: true });
-        return push({ tone: "ok", text: "Sheath visible ~2 cm beyond the tip." });
+        return push({ tone: "ok", text: l("Sheath visible ~2 cm beyond the tip.", "เห็น sheath ยื่นเลยปลายกล้อง ~2 cm") });
       case "extend":
-        if (!st.sheathOut) return fail("Extending the brush inside the channel would damage the scope — advance the sheath out first.");
+        if (!st.sheathOut) return fail(l("Extending the brush inside the channel would damage the scope — advance the sheath out first.", "การดันแปรงออกขณะอยู่ใน channel ทำให้กล้องเสียหาย — ดัน sheath ออกก่อน"));
         setSt({ ...st, brushOut: true });
-        return push({ tone: "ok", text: "Brush extended onto the lesion under direct vision." });
+        return push({ tone: "ok", text: l("Brush extended onto the lesion under direct vision.", "ดันแปรงไปที่รอยโรคภายใต้การมองเห็นแล้ว") });
       case "brush":
-        if (!st.brushOut) return fail("Brush is not deployed.");
+        if (!st.brushOut) return fail(l("Brush is not deployed.", "แปรงยังไม่ได้ดันออก"));
         setSt({ ...st, brushed: true });
-        return push({ tone: "ok", text: "Several vigorous strokes with rotation across the lesion surface." });
+        return push({ tone: "ok", text: l("Several vigorous strokes with rotation across the lesion surface.", "ขัดแรงๆ หลายครั้งพร้อมหมุนบนผิวรอยโรค") });
       case "retract":
-        if (!st.brushOut) return fail("Brush is not out.");
-        if (!st.brushed) push({ tone: "warn", text: "Retracted before sampling the lesion." });
+        if (!st.brushOut) return fail(l("Brush is not out.", "แปรงไม่ได้อยู่นอก sheath"));
+        if (!st.brushed) push({ tone: "warn", text: l("Retracted before sampling the lesion.", "เก็บแปรงก่อนได้ตัวอย่างจากรอยโรค") });
         setSt({ ...st, brushOut: false });
-        return push({ tone: "ok", text: "'Brush in!' — bristles back inside the sheath." });
+        return push({ tone: "ok", text: l("'Brush in!' — bristles back inside the sheath.", "'เก็บแปรง!' — ขนแปรงกลับเข้า sheath แล้ว") });
       case "withdraw":
-        if (!st.inScope) return fail("Nothing to withdraw.");
-        if (st.brushOut) return fail("Withdrawing with the brush exposed strips the sample in the channel and damages it.");
+        if (!st.inScope) return fail(l("Nothing to withdraw.", "ไม่มีอะไรให้ถอด"));
+        if (st.brushOut) return fail(l("Withdrawing with the brush exposed strips the sample in the channel and damages it.", "ถอดขณะแปรงโผล่จะรูดตัวอย่างทิ้งใน channel และทำให้ channel เสียหาย"));
         setSt({ inScope: false, sheathOut: false, brushOut: false, brushed: st.brushed });
-        return push({ tone: "ok", text: "Sheath and brush removed together." });
+        return push({ tone: "ok", text: l("Sheath and brush removed together.", "ถอด sheath และแปรงออกพร้อมกันแล้ว") });
       case "smear": {
-        if (st.inScope || !st.brushed) return fail(st.inScope ? "The brush is still in the scope." : "No sample has been collected.");
+        if (st.inScope || !st.brushed) return fail(st.inScope ? l("The brush is still in the scope.", "แปรงยังอยู่ในกล้อง") : l("No sample has been collected.", "ยังไม่ได้เก็บตัวอย่าง"));
         const s = Math.max(0, 100 - errors * 15);
         setScore(s);
-        return push({ tone: "ok", text: "Slides prepared; brush agitated in CytoLyt. Run complete." });
+        return push({ tone: "ok", text: l("Slides prepared; brush agitated in CytoLyt. Run complete.", "เตรียมสไลด์และเขย่าแปรงใน CytoLyt แล้ว — จบรอบ") });
       }
     }
   };
@@ -84,8 +86,8 @@ export function BrushSim() {
   return (
     <SimShell
       procId="brush"
-      title="Mini-simulation: sheathed brushing sequence"
-      subtitle="Perform the actions in a safe order. Each unsafe action costs 15 points."
+      title={l("Mini-simulation: sheathed brushing sequence", "Mini-simulation: ลำดับการทำ brushing ด้วยแปรงใน sheath")}
+      subtitle={l("Perform the actions in a safe order. Each unsafe action costs 15 points.", "ทำตามลำดับที่ปลอดภัย การกระทำที่ไม่ปลอดภัยหักครั้งละ 15 คะแนน")}
       log={log}
       score={score}
       onReset={reset}
@@ -110,11 +112,11 @@ export function BrushSim() {
         <div className="grid gap-2 sm:grid-cols-2">
           {shuffled.map((a) => (
             <Button key={a.id} size="sm" className="h-auto justify-start py-2 text-left" onClick={() => act(a.id)} disabled={score !== null}>
-              {a.label}
+              {l(a.label, a.th)}
             </Button>
           ))}
         </div>
-        <p className="text-xs text-muted">Errors: {errors}</p>
+        <p className="text-xs text-muted">{l("Errors:", "ข้อผิดพลาด:")} {errors}</p>
       </div>
     </SimShell>
   );
@@ -123,12 +125,12 @@ export function BrushSim() {
 /* ──────────────────────────── EBBx: forceps & haemostasis ──────────────────────────── */
 
 const HEMOSTASIS = [
-  { id: "suction", label: "Suction & observe (keep view)", good: true },
-  { id: "saline", label: "Cold saline 20 mL", good: true },
-  { id: "epi", label: "Topical epinephrine 1:20,000 (small aliquots)", good: true },
-  { id: "wedge", label: "Wedge / balloon tamponade", good: true },
-  { id: "withdraw", label: "Withdraw scope to the trachea", good: false },
-  { id: "bite", label: "Keep biopsying", good: false },
+  { id: "suction", label: "Suction & observe (keep view)", th: "ดูดและสังเกต (รักษาภาพ)", good: true },
+  { id: "saline", label: "Cold saline 20 mL", th: "Cold saline 20 mL", good: true },
+  { id: "epi", label: "Topical epinephrine 1:20,000 (small aliquots)", th: "Topical epinephrine 1:20,000 (ครั้งละน้อย)", good: true },
+  { id: "wedge", label: "Wedge / balloon tamponade", th: "Wedge / balloon tamponade", good: true },
+  { id: "withdraw", label: "Withdraw scope to the trachea", th: "ถอยกล้องกลับไปที่ trachea", good: false },
+  { id: "bite", label: "Keep biopsying", th: "ตัดชิ้นเนื้อต่อ", good: false },
 ] as const;
 
 export function EbbxSim() {
@@ -142,14 +144,15 @@ export function EbbxSim() {
   const [penalty, setPenalty] = useState(0);
   const [log, setLog] = useState<SimLog[]>([]);
   const [score, setScore] = useState<number | null>(null);
-  const push = (l: SimLog) => setLog((x) => [l, ...x]);
+  const l = useL();
+  const push = (e: SimLog) => setLog((x) => [e, ...x]);
 
   const effAngle = lesion === "carina" ? Math.min(90, angle + 40) : angle;
 
   const bite = () => {
     if (bleed > 0) {
       setPenalty((p) => p + 15);
-      return push({ tone: "danger", text: "Biopsying into an active bleed worsens haemorrhage — control it first (−15)." });
+      return push({ tone: "danger", text: l("Biopsying into an active bleed worsens haemorrhage — control it first (−15).", "ตัดชิ้นเนื้อขณะเลือดยังออกจะทำให้เลือดออกมากขึ้น — ห้ามเลือดก่อน (−15)") });
     }
     const n = bites.length;
     let p = Math.sin((effAngle * Math.PI) / 180);
@@ -158,17 +161,17 @@ export function EbbxSim() {
     const cartilage = lesion === "parallel" && effAngle < 25 && Math.random() < 0.5;
     const ok = !cartilage && Math.random() < Math.min(0.95, p);
     const note = cartilage
-      ? "Forceps slid and bit a cartilage ring — crushed, non-diagnostic fragment."
+      ? l("Forceps slid and bit a cartilage ring — crushed, non-diagnostic fragment.", "Forceps ลื่นไปงับ cartilage ring — ได้ชิ้นเนื้อบี้ ไม่ให้การวินิจฉัย")
       : n === 0 && !ok
-        ? "Superficial necrotic slough — go deeper at the same spot."
+        ? l("Superficial necrotic slough — go deeper at the same spot.", "ได้แต่เนื้อตายที่ผิว — ตัดลึกลงที่ตำแหน่งเดิม")
         : ok
-          ? "Good core of viable tumour."
-          : "Tangential bite — small superficial fragment.";
+          ? l("Good core of viable tumour.", "ได้ชิ้นเนื้อ tumour ที่ยังมีชีวิตดี")
+          : l("Tangential bite — small superficial fragment.", "งับแบบเฉียง — ได้ชิ้นเล็กและตื้น");
     setBites((b) => [...b, { ok, note }]);
-    push({ tone: ok ? "ok" : "warn", text: `Bite ${n + 1}: ${note}` });
+    push({ tone: ok ? "ok" : "warn", text: `${l("Bite", "ครั้งที่")} ${n + 1}: ${note}` });
     if (!bleedDone && n >= 1 && Math.random() < 0.45) {
       setBleed(3);
-      push({ tone: "danger", text: "Brisk oozing obscures the field! Choose haemostatic measures." });
+      push({ tone: "danger", text: l("Brisk oozing obscures the field! Choose haemostatic measures.", "เลือดซึมมากจนบังภาพ! เลือกวิธีห้ามเลือด") });
     }
   };
 
@@ -177,16 +180,16 @@ export function EbbxSim() {
     if (!h.good) {
       setPenalty((p) => p + 15);
       setBleed(Math.min(4, bleed + 1));
-      return push({ tone: "danger", text: id === "withdraw" ? "Withdrawing loses control of the bleeding segment and soils the airway (−15)." : "More bites aggravate bleeding (−15)." });
+      return push({ tone: "danger", text: id === "withdraw" ? l("Withdrawing loses control of the bleeding segment and soils the airway (−15).", "การถอยกล้องทำให้ควบคุม segment ที่เลือดออกไม่ได้และเลือดไหลลง airway อื่น (−15)") : l("More bites aggravate bleeding (−15).", "การตัดเพิ่มทำให้เลือดออกมากขึ้น (−15)") });
     }
-    if (id === "epi" && !usedHem.includes("saline")) push({ tone: "warn", text: "Cold saline is usually tried before epinephrine." });
+    if (id === "epi" && !usedHem.includes("saline")) push({ tone: "warn", text: l("Cold saline is usually tried before epinephrine.", "ปกติใช้ cold saline ก่อน epinephrine") });
     setUsedHem((u) => [...u, id]);
     const nb = Math.max(0, bleed - 1);
     setBleed(nb);
     if (nb === 0) {
       setBleedDone(true);
-      push({ tone: "ok", text: "Haemostasis achieved. Observe before continuing." });
-    } else push({ tone: "info", text: `${h.label}: bleeding slowing.` });
+      push({ tone: "ok", text: l("Haemostasis achieved. Observe before continuing.", "เลือดหยุดแล้ว สังเกตก่อนทำต่อ") });
+    } else push({ tone: "info", text: `${l(h.label, h.th)}: ${l("bleeding slowing.", "เลือดออกช้าลง")}` });
   };
 
   const finish = () => {
@@ -196,7 +199,7 @@ export function EbbxSim() {
     if (bleed > 0) s -= 25;
     s = Math.max(0, Math.min(100, s));
     setScore(s);
-    push({ tone: good >= 3 ? "ok" : "warn", text: `${good} diagnostic fragments from ${bites.length} bites (aim for 3–6 good samples; yield >80% in visible tumours).` });
+    push({ tone: good >= 3 ? "ok" : "warn", text: l(`${good} diagnostic fragments from ${bites.length} bites (aim for 3–6 good samples; yield >80% in visible tumours).`, `ได้ชิ้นเนื้อที่วินิจฉัยได้ ${good} ชิ้นจาก ${bites.length} ครั้ง (ควรได้ชิ้นที่ดี 3–6 ชิ้น; yield >80% ใน visible tumour)`) });
   };
 
   const reset = () => {
@@ -212,8 +215,8 @@ export function EbbxSim() {
   return (
     <SimShell
       procId="ebbx"
-      title="Mini-simulation: forceps orientation & haemostasis"
-      subtitle="Exophytic tumour in the bronchus intermedius. Optimise the approach, then manage any bleeding."
+      title={l("Mini-simulation: forceps orientation & haemostasis", "Mini-simulation: การจัดมุม forceps และการห้ามเลือด")}
+      subtitle={l("Exophytic tumour in the bronchus intermedius. Optimise the approach, then manage any bleeding.", "Exophytic tumour ใน bronchus intermedius ปรับวิธีเข้าให้เหมาะ แล้วจัดการเลือดออกหากเกิดขึ้น")}
       log={log}
       score={score}
       onReset={reset}
@@ -221,10 +224,10 @@ export function EbbxSim() {
       <div className="grid gap-4 md:grid-cols-[1fr_220px]">
         <div className="space-y-3 text-sm">
           <div className="flex flex-wrap gap-1.5">
-            <span className="self-center text-xs text-muted">Lesion:</span>
-            {(["parallel", "carina"] as const).map((l) => (
-              <button key={l} onClick={() => setLesion(l)} className={cn("rounded-md border px-2 py-1 text-xs", lesion === l ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200" : "border-line text-slate-400")}>
-                {l === "parallel" ? "Along the side wall" : "At a bifurcation"}
+            <span className="self-center text-xs text-muted">{l("Lesion:", "รอยโรค:")}</span>
+            {(["parallel", "carina"] as const).map((k) => (
+              <button key={k} onClick={() => setLesion(k)} className={cn("rounded-md border px-2 py-1 text-xs", lesion === k ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200" : "border-line text-slate-400")}>
+                {k === "parallel" ? l("Along the side wall", "อยู่ตามผนังด้านข้าง") : l("At a bifurcation", "อยู่ที่จุดแยก")}
               </button>
             ))}
           </div>
@@ -232,25 +235,25 @@ export function EbbxSim() {
             <span className="self-center text-xs text-muted">Forceps:</span>
             {(["cup", "alligator", "spike"] as const).map((f) => (
               <button key={f} onClick={() => setForceps(f)} className={cn("rounded-md border px-2 py-1 text-xs", forceps === f ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200" : "border-line text-slate-400")}>
-                {f === "spike" ? "With central spike" : f === "cup" ? "Cup" : "Alligator"}
+                {f === "spike" ? l("With central spike", "มี spike ตรงกลาง") : f === "cup" ? "Cup" : "Alligator"}
               </button>
             ))}
           </div>
           <label className="block">
-            Scope flexion → forceps-to-lesion angle: <b className="font-mono text-cyan-300">{effAngle}°</b>
+            {l("Scope flexion → forceps-to-lesion angle:", "งอกล้อง → มุมระหว่าง forceps กับรอยโรค:")} <b className="font-mono text-cyan-300">{effAngle}°</b>
             <input type="range" className="slider mt-1 w-full" min={5} max={90} value={angle} onChange={(e) => setAngle(+e.target.value)} />
           </label>
           <div className="flex gap-2">
-            <Button onClick={bite} disabled={score !== null}><Scissors className="h-3.5 w-3.5" /> Take bite</Button>
-            <Button variant="primary" onClick={finish} disabled={score !== null || bites.length === 0}>Finish</Button>
+            <Button onClick={bite} disabled={score !== null}><Scissors className="h-3.5 w-3.5" /> {l("Take bite", "ตัดชิ้นเนื้อ")}</Button>
+            <Button variant="primary" onClick={finish} disabled={score !== null || bites.length === 0}>{l("Finish", "เสร็จสิ้น")}</Button>
           </div>
           {bleed > 0 && (
             <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-3">
-              <p className="mb-2 text-xs font-semibold text-rose-200">Bleeding severity: {"●".repeat(bleed)}{"○".repeat(Math.max(0, 4 - bleed))}</p>
+              <p className="mb-2 text-xs font-semibold text-rose-200">{l("Bleeding severity:", "ความรุนแรงของเลือดออก:")} {"●".repeat(bleed)}{"○".repeat(Math.max(0, 4 - bleed))}</p>
               <div className="grid gap-1.5 sm:grid-cols-2">
                 {HEMOSTASIS.map((h) => (
                   <Button key={h.id} size="sm" variant="secondary" className="h-auto justify-start py-1.5 text-left" onClick={() => hem(h.id)}>
-                    {h.label}
+                    {l(h.label, h.th)}
                   </Button>
                 ))}
               </div>

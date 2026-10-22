@@ -5,9 +5,11 @@ import { AlertOctagon, CheckCircle2, ChevronLeft, ChevronRight, ListChecks } fro
 import { Button, Card, CardHeader } from "@/components/ui/primitives";
 import type { Complication, Step } from "@/lib/data/procedures";
 import { cn } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
 
 export function StepWorkflow({ steps }: { steps: Step[] }) {
   const [i, setI] = useState(0);
+  const l = useL();
   const [done, setDone] = useState<Set<number>>(new Set());
   const step = steps[i];
   const markAndNext = () => {
@@ -17,8 +19,8 @@ export function StepWorkflow({ steps }: { steps: Step[] }) {
   return (
     <Card>
       <CardHeader
-        title="Step-by-step interactive workflow"
-        subtitle={`${done.size}/${steps.length} steps confirmed`}
+        title={l("Step-by-step interactive workflow", "ขั้นตอนการทำหัตถการแบบโต้ตอบ")}
+        subtitle={l(`${done.size}/${steps.length} steps confirmed`, `ยืนยันแล้ว ${done.size}/${steps.length} ขั้นตอน`)}
         icon={<ListChecks className="h-4 w-4" />}
       />
       <div className="grid gap-4 p-4 md:grid-cols-[240px_1fr]">
@@ -47,20 +49,20 @@ export function StepWorkflow({ steps }: { steps: Step[] }) {
           ))}
         </ol>
         <div className="flex flex-col rounded-lg border border-line bg-panel-2 p-4">
-          <p className="text-[11px] uppercase tracking-wider text-muted">Step {i + 1} of {steps.length}</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted">{l(`Step ${i + 1} of ${steps.length}`, `ขั้นตอนที่ ${i + 1} จาก ${steps.length}`)}</p>
           <h4 className="mt-1 text-lg font-semibold">{step.title}</h4>
           {step.critical && (
             <p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
-              <AlertOctagon className="h-3 w-3" /> Safety-critical step
+              <AlertOctagon className="h-3 w-3" /> {l("Safety-critical step", "ขั้นตอนสำคัญด้านความปลอดภัย")}
             </p>
           )}
           <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-200">{step.detail}</p>
           <div className="mt-4 flex items-center justify-between">
             <Button size="sm" variant="ghost" onClick={() => setI((x) => Math.max(0, x - 1))} disabled={i === 0}>
-              <ChevronLeft className="h-3.5 w-3.5" /> Back
+              <ChevronLeft className="h-3.5 w-3.5" /> {l("Back", "ย้อนกลับ")}
             </Button>
             <Button size="sm" variant="primary" onClick={markAndNext}>
-              <CheckCircle2 className="h-3.5 w-3.5" /> {done.has(i) ? "Confirmed" : "Confirm step"}
+              <CheckCircle2 className="h-3.5 w-3.5" /> {done.has(i) ? l("Confirmed", "ยืนยันแล้ว") : l("Confirm step", "ยืนยันขั้นตอน")}
               {i < steps.length - 1 && <ChevronRight className="h-3.5 w-3.5" />}
             </Button>
           </div>
@@ -72,6 +74,7 @@ export function StepWorkflow({ steps }: { steps: Step[] }) {
 
 export function ComplicationsChecklist({ tips, complications }: { tips: string[]; complications: Complication[] }) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const l = useL();
   const toggle = (k: string) =>
     setChecked((c) => {
       const n = new Set(c);
@@ -81,10 +84,10 @@ export function ComplicationsChecklist({ tips, complications }: { tips: string[]
     });
   return (
     <Card>
-      <CardHeader title="Tips & complications checklist" subtitle="Tick each item as you plan the case" icon={<ListChecks className="h-4 w-4" />} />
+      <CardHeader title={l("Tips & complications checklist", "Checklist เคล็ดลับและภาวะแทรกซ้อน")} subtitle={l("Tick each item as you plan the case", "ติ๊กแต่ละข้อขณะวางแผนเคส")} icon={<ListChecks className="h-4 w-4" />} />
       <div className="grid gap-4 p-4 lg:grid-cols-2">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-cyan-300">Technical tips</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-cyan-300">{l("Technical tips", "เคล็ดลับทางเทคนิค")}</p>
           <ul className="space-y-1.5">
             {tips.map((t) => (
               <li key={t}>
@@ -97,7 +100,7 @@ export function ComplicationsChecklist({ tips, complications }: { tips: string[]
           </ul>
         </div>
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-300">Complications — prevent & manage</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-rose-300">{l("Complications — prevent & manage", "ภาวะแทรกซ้อน — การป้องกันและการจัดการ")}</p>
           <div className="space-y-2">
             {complications.map((c) => (
               <label key={c.name} className="block cursor-pointer rounded-md border border-line bg-panel-2 p-2.5 text-[13px]">
@@ -106,8 +109,8 @@ export function ComplicationsChecklist({ tips, complications }: { tips: string[]
                   <b className="text-slate-100">{c.name}</b>
                   {c.incidence && <span className="text-[11px] text-muted">· {c.incidence}</span>}
                 </span>
-                <span className="mt-1 block pl-6 text-xs text-slate-400"><b className="text-emerald-300/90">Prevent:</b> {c.prevention}</span>
-                <span className="block pl-6 text-xs text-slate-400"><b className="text-amber-300/90">Manage:</b> {c.management}</span>
+                <span className="mt-1 block pl-6 text-xs text-slate-400"><b className="text-emerald-300/90">{l("Prevent:", "ป้องกัน:")}</b> {c.prevention}</span>
+                <span className="block pl-6 text-xs text-slate-400"><b className="text-amber-300/90">{l("Manage:", "จัดการ:")}</b> {c.management}</span>
               </label>
             ))}
           </div>

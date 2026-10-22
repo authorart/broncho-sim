@@ -11,6 +11,8 @@ import { NODE_STATIONS, ZONE_COLORS, type Access } from "@/lib/data/mediastinum"
 import type { MapOptions, MapSelection } from "@/components/airway/AirwayMap3D";
 import { LarynxDiagram } from "./LarynxDiagram";
 import { cn } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
+import { useContent } from "@/lib/i18n/content";
 
 const EndoscopeView = dynamic(() => import("@/components/airway/EndoscopeView").then((m) => m.EndoscopeView), {
   ssr: false,
@@ -34,6 +36,9 @@ export function AnatomyAtlas() {
   const [labels, setLabels] = useState(true);
   const [selection, setSelection] = useState<MapSelection>({ type: "node", id: "4R" });
   const [opts, setOpts] = useState<MapOptions>({ showVessels: true, showNodes: true, showLabels: true, accessFilter: "all" });
+  const l = useL();
+  const content = useContent();
+  const view = content.view(station);
 
   const goStation = (s: Station) => {
     setStation(s);
@@ -51,14 +56,14 @@ export function AnatomyAtlas() {
           value={tab}
           onChange={setTab}
           options={[
-            { value: "endo", label: <><Eye className="h-3.5 w-3.5" />Endoscopic view</> },
-            { value: "map", label: <><Boxes className="h-3.5 w-3.5" />3D anatomical map + IASLC stations</> },
+            { value: "endo", label: <><Eye className="h-3.5 w-3.5" />{l("Endoscopic view", "ภาพจากกล้อง")}</> },
+            { value: "map", label: <><Boxes className="h-3.5 w-3.5" />{l("3D anatomical map + IASLC stations", "แผนที่ 3D + IASLC stations")}</> },
           ]}
         />
         <p className="text-xs text-muted">
           {tab === "endo"
-            ? "Click a label in the image or a branch on the map to read about it."
-            : "Drag to orbit · scroll to zoom · click nodes or airways."}
+            ? l("Click a label in the image or a branch on the map to read about it.", "คลิกป้ายชื่อในภาพหรือแขนงบนแผนที่เพื่ออ่านคำอธิบาย")
+            : l("Drag to orbit · scroll to zoom · click nodes or airways.", "ลากเพื่อหมุน · เลื่อนเพื่อซูม · คลิก node หรือ airway")}
         </p>
       </div>
 
@@ -75,28 +80,28 @@ export function AnatomyAtlas() {
                 className="aspect-square w-full rounded-2xl border border-line"
               >
                 <div className="pointer-events-none absolute bottom-3 left-3 font-mono text-[11px] text-cyan-200/90">
-                  {station.label}
+                  {view.label}
                 </div>
               </EndoscopeView>
               <p className="mt-2 text-xs leading-relaxed text-slate-300">
-                <span className="font-semibold text-cyan-300">Reference layout: </span>
-                {station.expected}
+                <span className="font-semibold text-cyan-300">{l("Reference layout: ", "ตำแหน่งตามภาพอ้างอิง: ")}</span>
+                {view.expected}
               </p>
               <div className="mt-2 flex justify-between">
                 <Button size="sm" variant="ghost" onClick={() => setLabels((l) => !l)}>
-                  <Layers className="h-3.5 w-3.5" /> {labels ? "Hide" : "Show"} labels
+                  <Layers className="h-3.5 w-3.5" /> {labels ? l("Hide labels", "ซ่อนป้ายชื่อ") : l("Show labels", "แสดงป้ายชื่อ")}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => goStation(STATIONS[Math.floor(Math.random() * STATIONS.length)])}
                 >
-                  <Shuffle className="h-3.5 w-3.5" /> Random view
+                  <Shuffle className="h-3.5 w-3.5" /> {l("Random view", "สุ่มภาพ")}
                 </Button>
               </div>
             </div>
             <Card className="h-fit">
-              <CardHeader title="Landmark tour" icon={<MapPin className="h-4 w-4" />} />
+              <CardHeader title={l("Landmark tour", "จุดสังเกตสำคัญ")} icon={<MapPin className="h-4 w-4" />} />
               <div className="flex flex-col gap-0.5 p-2">
                 {STATIONS.map((s) => (
                   <button
@@ -107,7 +112,7 @@ export function AnatomyAtlas() {
                       s.id === station.id ? "bg-cyan-500/10 text-cyan-300" : "text-slate-300 hover:bg-panel-2",
                     )}
                   >
-                    {s.label}
+                    {content.view(s).label}
                   </button>
                 ))}
               </div>
@@ -122,13 +127,13 @@ export function AnatomyAtlas() {
               <AirwayMap3D selection={selection} onSelect={setSelection} options={opts} />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Toggle on={opts.showNodes} onClick={() => setOpts((o) => ({ ...o, showNodes: !o.showNodes }))}>Lymph nodes</Toggle>
-              <Toggle on={opts.showVessels} onClick={() => setOpts((o) => ({ ...o, showVessels: !o.showVessels }))}>Great vessels</Toggle>
-              <Toggle on={opts.showLabels} onClick={() => setOpts((o) => ({ ...o, showLabels: !o.showLabels }))}>Station labels</Toggle>
-              <span className="ml-2 text-xs text-muted">Accessible by:</span>
+              <Toggle on={opts.showNodes} onClick={() => setOpts((o) => ({ ...o, showNodes: !o.showNodes }))}>{l("Lymph nodes", "ต่อมน้ำเหลือง")}</Toggle>
+              <Toggle on={opts.showVessels} onClick={() => setOpts((o) => ({ ...o, showVessels: !o.showVessels }))}>{l("Great vessels", "หลอดเลือดใหญ่")}</Toggle>
+              <Toggle on={opts.showLabels} onClick={() => setOpts((o) => ({ ...o, showLabels: !o.showLabels }))}>{l("Station labels", "ชื่อ station")}</Toggle>
+              <span className="ml-2 text-xs text-muted">{l("Accessible by:", "เข้าถึงได้ด้วย:")}</span>
               {ACCESS.map((a) => (
                 <Toggle key={a} on={opts.accessFilter === a} onClick={() => setOpts((o) => ({ ...o, accessFilter: a }))}>
-                  {a === "all" ? "All" : a}
+                  {a === "all" ? l("All", "ทั้งหมด") : a}
                 </Toggle>
               ))}
             </div>
@@ -148,7 +153,7 @@ export function AnatomyAtlas() {
 
         <div className="flex flex-col gap-4">
           {selectedNode ? <NodeInfo id={selectedNode.id} /> : selectedBranch ? <BranchInfo id={selectedBranch} /> : (
-            <Card className="p-4 text-sm text-muted">Select an airway branch or lymph node station.</Card>
+            <Card className="p-4 text-sm text-muted">{l("Select an airway branch or lymph node station.", "เลือกแขนง airway หรือ lymph node station")}</Card>
           )}
           {tab === "endo" && <LarynxDiagram />}
         </div>
@@ -173,9 +178,11 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 }
 
 function BranchInfo({ id }: { id: string }) {
+  const l = useL();
+  const content = useContent();
   const seg = SEG_BY_ID[id];
-  const def = seg?.def;
-  if (!seg || !def) return null;
+  if (!seg || !seg.def) return null;
+  const def = content.airway(seg.def);
   return (
     <Card>
       <CardHeader
@@ -187,28 +194,28 @@ function BranchInfo({ id }: { id: string }) {
       <div className="space-y-3 p-4 text-sm">
         <p className="leading-relaxed text-slate-300">{def.description}</p>
         <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div className="rounded-md bg-panel-2 p-2"><p className="text-muted">Length</p><p className="font-mono text-slate-200">{def.length} mm</p></div>
-          <div className="rounded-md bg-panel-2 p-2"><p className="text-muted">ID origin</p><p className="font-mono text-slate-200">{def.diameter[0]} mm</p></div>
-          <div className="rounded-md bg-panel-2 p-2"><p className="text-muted">Side</p><p className="font-mono text-slate-200">{def.side === "C" ? "Midline" : def.side === "R" ? "Right" : "Left"}</p></div>
+          <div className="rounded-md bg-panel-2 p-2"><p className="text-muted">{l("Length", "ความยาว")}</p><p className="font-mono text-slate-200">{def.length} mm</p></div>
+          <div className="rounded-md bg-panel-2 p-2"><p className="text-muted">{l("ID origin", "ขนาดภายใน")}</p><p className="font-mono text-slate-200">{def.diameter[0]} mm</p></div>
+          <div className="rounded-md bg-panel-2 p-2"><p className="text-muted">{l("Side", "ข้าง")}</p><p className="font-mono text-slate-200">{def.side === "C" ? l("Midline", "กึ่งกลาง") : def.side === "R" ? l("Right", "ขวา") : l("Left", "ซ้าย")}</p></div>
         </div>
         {def.landmarks && (
-          <Section icon={<MapPin className="h-3.5 w-3.5" />} title="Landmarks">
+          <Section icon={<MapPin className="h-3.5 w-3.5" />} title={l("Landmarks", "จุดสังเกต")}>
             {def.landmarks}
           </Section>
         )}
         {def.variations && (
-          <Section icon={<Lightbulb className="h-3.5 w-3.5" />} title="Variations">
+          <Section icon={<Lightbulb className="h-3.5 w-3.5" />} title={l("Variations", "ความแปรผัน")}>
             {def.variations}
           </Section>
         )}
         {def.pitfalls && (
-          <Callout tone="warn" title={<span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />Pitfalls</span>}>
+          <Callout tone="warn" title={<span className="flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" />{l("Pitfalls", "ข้อควรระวัง")}</span>}>
             <ul className="list-disc space-y-1 pl-4">
               {def.pitfalls.map((p) => <li key={p}>{p}</li>)}
             </ul>
           </Callout>
         )}
-        <p className="text-[11px] text-muted">Source: Ernst 2017, ch. 4 (paraphrased).</p>
+        <p className="text-[11px] text-muted">{l("Sources: Ernst 2017 ch. 4; Olympus nomenclature poster (paraphrased).", "แหล่งข้อมูล: Ernst 2017 ch. 4; Olympus nomenclature poster (เรียบเรียงใหม่)")}</p>
       </div>
     </Card>
   );
@@ -226,7 +233,9 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 }
 
 function NodeInfo({ id }: { id: string }) {
-  const n = NODE_STATIONS.find((x) => x.id === id)!;
+  const l = useL();
+  const content = useContent();
+  const n = content.node(NODE_STATIONS.find((x) => x.id === id)!);
   return (
     <Card>
       <CardHeader
@@ -241,18 +250,18 @@ function NodeInfo({ id }: { id: string }) {
           ))}
         </div>
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">IASLC boundaries</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">{l("IASLC boundaries", "ขอบเขตตาม IASLC")}</p>
           <p className="text-[13px] leading-relaxed text-slate-300">{n.boundaries}</p>
         </div>
         {n.ebusTechnique && (
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">EBUS approach</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-cyan-300">{l("EBUS approach", "วิธีหาด้วย EBUS")}</p>
             <p className="text-[13px] leading-relaxed text-slate-300">{n.ebusTechnique}</p>
           </div>
         )}
-        {n.landmarkVessel && <p className="text-[13px] text-slate-300"><b className="text-slate-200">Vascular landmark:</b> {n.landmarkVessel}</p>}
-        {n.pearl && <Callout tone="info" title="Pearl">{n.pearl}</Callout>}
-        <p className="text-[11px] text-muted">Sources: IASLC map (Rusch 2009); Ernst 2017 ch. 11 &amp; 13. Positions in the 3D model are schematic.</p>
+        {n.landmarkVessel && <p className="text-[13px] text-slate-300"><b className="text-slate-200">{l("Vascular landmark:", "หลอดเลือดที่ใช้เป็นจุดสังเกต:")}</b> {n.landmarkVessel}</p>}
+        {n.pearl && <Callout tone="info" title={l("Pearl", "เกร็ดความรู้")}>{n.pearl}</Callout>}
+        <p className="text-[11px] text-muted">{l("Sources: IASLC map (Rusch 2009); Ernst 2017 ch. 11 & 13. Positions in the 3D model are schematic.", "แหล่งข้อมูล: IASLC map (Rusch 2009); Ernst 2017 ch. 11 และ 13 ตำแหน่งในแบบจำลอง 3D เป็นแบบแผนผัง")}</p>
       </div>
     </Card>
   );

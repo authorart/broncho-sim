@@ -5,6 +5,7 @@ import { FlaskConical, RotateCcw, Trophy } from "lucide-react";
 import { Button, Card, CardHeader } from "@/components/ui/primitives";
 import { useProgress } from "@/lib/store/progress";
 import { cn } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
 
 export type SimLog = { tone: "ok" | "warn" | "danger" | "info"; text: string };
 
@@ -27,6 +28,7 @@ export function SimShell({
   onReset: () => void;
 }) {
   const record = useProgress((s) => s.recordProcedure);
+  const l = useL();
   const best = useProgress((s) => Math.max(0, ...(s.procedures[procId] ?? []).map((r) => r.score)));
   const saved = useRef(false);
   useEffect(() => {
@@ -49,7 +51,7 @@ export function SimShell({
             variant="ghost"
             onClick={onReset}
           >
-            <RotateCcw className="h-3.5 w-3.5" /> Reset
+            <RotateCcw className="h-3.5 w-3.5" /> {l("Reset", "เริ่มใหม่")}
           </Button>
         }
       />
@@ -60,12 +62,12 @@ export function SimShell({
             <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3 text-center">
               <Trophy className="mx-auto h-5 w-5 text-amber-300" />
               <p className="mt-1 font-mono text-3xl font-bold text-cyan-300">{score}</p>
-              <p className="text-[11px] text-muted">run score · best {Math.max(best, score)}</p>
+              <p className="text-[11px] text-muted">{l(`run score · best ${Math.max(best, score)}`, `คะแนนรอบนี้ · สูงสุด ${Math.max(best, score)}`)}</p>
             </div>
           )}
-          <p className="text-[11px] uppercase tracking-wider text-muted">Event log</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted">{l("Event log", "บันทึกเหตุการณ์")}</p>
           <ul className="scrollbar-thin flex max-h-80 flex-col gap-1 overflow-y-auto" aria-live="polite">
-            {log.length === 0 && <li className="text-xs text-muted">Actions and feedback appear here.</li>}
+            {log.length === 0 && <li className="text-xs text-muted">{l("Actions and feedback appear here.", "การกระทำและคำแนะนำจะแสดงที่นี่")}</li>}
             {log.map((l, i) => (
               <li
                 key={i}

@@ -7,6 +7,7 @@ import type { QuizImage } from "@/lib/data/quiz";
 import { VIEW_BY_ID } from "@/lib/airway/views";
 import { ConvexSonogram, RadialSonogram } from "@/components/imaging/Sonograms";
 import { CONVEX_PRESETS } from "@/components/imaging/sonography";
+import { useL } from "@/lib/i18n/locale";
 
 const EndoscopeView = dynamic(() => import("@/components/airway/EndoscopeView").then((m) => m.EndoscopeView), {
   ssr: false,
@@ -23,13 +24,14 @@ function EndoStill({ img }: { img: Extract<QuizImage, { kind: "endo" }> }) {
 }
 
 export function QuestionImage({ img }: { img: QuizImage }) {
+  const l = useL();
   return (
     <figure className="mx-auto w-full max-w-sm">
       {img.kind === "endo" && <EndoStill img={img} />}
       {img.kind === "cp-ebus" && <ConvexSonogram params={{ ...CONVEX_PRESETS[img.preset], gain: 1 }} />}
       {img.kind === "rp-ebus" && <RadialSonogram params={{ seed: 9, pattern: img.pattern, gain: 1 }} />}
       <figcaption className="mt-1 text-center text-[11px] text-muted">
-        {img.kind === "endo" ? "Simulated white-light view" : "Procedurally generated ultrasound image"}
+        {img.kind === "endo" ? l("Simulated white-light view", "ภาพจำลอง white-light") : l("Procedurally generated ultrasound image", "ภาพ ultrasound ที่สร้างด้วย procedural generation")}
       </figcaption>
     </figure>
   );

@@ -9,6 +9,8 @@ import { REF_BY_ID } from "@/lib/data/references";
 import { useProgress, type QuizCategory } from "@/lib/store/progress";
 import { QuestionImage } from "./QuestionImage";
 import { cn } from "@/lib/utils";
+import { useL } from "@/lib/i18n/locale";
+import { useContent } from "@/lib/i18n/content";
 
 type SessionQ = { q: QuizQuestion; order: number[] };
 
@@ -31,6 +33,9 @@ export function QuizRunner() {
   const [chosen, setChosen] = useState<number | null>(null);
   const [results, setResults] = useState<{ cat: QuizCategory; correct: boolean }[]>([]);
   const recordAnswer = useProgress((s) => s.recordAnswer);
+  const l = useL();
+  const content = useContent();
+  const catLabel = (c: QuizCategory) => content.category(c, CATEGORY_LABEL[c]);
 
   const pool = QUIZ.filter((q) => cats.has(q.category));
 
@@ -45,10 +50,10 @@ export function QuizRunner() {
   if (!session) {
     return (
       <Card className="mx-auto max-w-2xl">
-        <CardHeader title="Build a quiz" subtitle={`${QUIZ.length} vignette MCQs across four domains`} icon={<GraduationCap className="h-4 w-4" />} />
+        <CardHeader title={l("Build a quiz", "สร้างชุดข้อสอบ")} subtitle={l(`${QUIZ.length} vignette MCQs across four domains`, `ข้อสอบ MCQ แบบ vignette ${QUIZ.length} ข้อ ใน 4 หมวด`)} icon={<GraduationCap className="h-4 w-4" />} />
         <div className="space-y-5 p-5">
           <div>
-            <p className="mb-2 text-xs uppercase tracking-wider text-muted">Domains</p>
+            <p className="mb-2 text-xs uppercase tracking-wider text-muted">{l("Domains", "หมวด")}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {CATS.map((c) => (
                 <label key={c} className={cn("flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm", cats.has(c) ? "border-cyan-500/50 bg-cyan-500/5" : "border-line")}>
@@ -65,14 +70,14 @@ export function QuizRunner() {
                       })
                     }
                   />
-                  {CATEGORY_LABEL[c]}
+                  {catLabel(c)}
                   <span className="ml-auto text-xs text-muted">{QUIZ.filter((q) => q.category === c).length}</span>
                 </label>
               ))}
             </div>
           </div>
           <div>
-            <p className="mb-2 text-xs uppercase tracking-wider text-muted">Questions</p>
+            <p className="mb-2 text-xs uppercase tracking-wider text-muted">{l("Questions", "จำนวนข้อ")}</p>
             <div className="flex gap-2">
               {[5, 10, 20, 40].map((n) => (
                 <button key={n} onClick={() => setCount(n)} className={cn("rounded-md border px-3 py-1.5 font-mono text-sm", count === n ? "border-cyan-500/60 bg-cyan-500/10 text-cyan-200" : "border-line text-slate-400")}>
@@ -82,7 +87,7 @@ export function QuizRunner() {
             </div>
           </div>
           <Button variant="primary" onClick={start} disabled={pool.length === 0}>
-            Start quiz ({Math.min(count, pool.length)} questions)
+            {l(`Start quiz (${Math.min(count, pool.length)} questions)`, `เริ่มทำข้อสอบ (${Math.min(count, pool.length)} ข้อ)`)}
           </Button>
         </div>
       </Card>
@@ -93,19 +98,19 @@ export function QuizRunner() {
     const total = results.filter((r) => r.correct).length;
     return (
       <Card className="mx-auto max-w-2xl">
-        <CardHeader title="Session complete" icon={<BarChart3 className="h-4 w-4" />} />
+        <CardHeader title={l("Session complete", "ทำข้อสอบเสร็จแล้ว")} icon={<BarChart3 className="h-4 w-4" />} />
         <div className="space-y-4 p-5">
           <p className="text-center font-mono text-5xl font-bold text-cyan-300">
             {Math.round((total / results.length) * 100)}%
           </p>
-          <p className="text-center text-sm text-muted">{total} / {results.length} correct</p>
+          <p className="text-center text-sm text-muted">{l(`${total} / ${results.length} correct`, `ถูก ${total} / ${results.length} ข้อ`)}</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {CATS.filter((c) => results.some((r) => r.cat === c)).map((c) => {
               const rs = results.filter((r) => r.cat === c);
               const ok = rs.filter((r) => r.correct).length;
               return (
                 <div key={c} className="rounded-lg border border-line bg-panel-2 p-3">
-                  <p className="text-xs text-muted">{CATEGORY_LABEL[c]}</p>
+                  <p className="text-xs text-muted">{catLabel(c)}</p>
                   <p className="font-mono text-lg">{ok}/{rs.length}</p>
                   <div className="mt-1 h-1.5 rounded-full bg-slate-800">
                     <div className="h-full rounded-full bg-cyan-400" style={{ width: `${(ok / rs.length) * 100}%` }} />
@@ -115,10 +120,10 @@ export function QuizRunner() {
             })}
           </div>
           <div className="flex flex-wrap justify-center gap-2">
-            <Button onClick={start}><RotateCcw className="h-3.5 w-3.5" /> New session</Button>
-            <Button variant="ghost" onClick={() => setSession(null)}>Change settings</Button>
+            <Button onClick={start}><RotateCcw className="h-3.5 w-3.5" /> {l("New session", "ทำชุดใหม่")}</Button>
+            <Button variant="ghost" onClick={() => setSession(null)}>{l("Change settings", "เปลี่ยนการตั้งค่า")}</Button>
             <Link href="/dashboard" className="inline-flex h-10 items-center gap-2 rounded-md bg-accent-strong px-4 text-sm font-semibold text-slate-950 hover:bg-accent">
-              <BarChart3 className="h-4 w-4" /> Performance dashboard
+              <BarChart3 className="h-4 w-4" /> {l("Performance dashboard", "Dashboard ผลการเรียน")}
             </Link>
           </div>
         </div>
@@ -126,7 +131,8 @@ export function QuizRunner() {
     );
   }
 
-  const { q, order } = session[idx];
+  const { order } = session[idx];
+  const q = content.quiz(session[idx].q);
   const answered = chosen !== null;
   const correct = answered && chosen === q.answer;
 
@@ -141,8 +147,8 @@ export function QuizRunner() {
   return (
     <div className="mx-auto max-w-4xl">
       <div className="mb-3 flex items-center justify-between text-xs text-muted">
-        <span>Question {idx + 1} / {session.length}</span>
-        <Badge tone="accent">{CATEGORY_LABEL[q.category]}</Badge>
+        <span>{l("Question", "ข้อที่")} {idx + 1} / {session.length}</span>
+        <Badge tone="accent">{catLabel(q.category)}</Badge>
       </div>
       <div className="mb-4 h-1 rounded-full bg-slate-800">
         <div className="h-full rounded-full bg-cyan-400 transition-all" style={{ width: `${(idx / session.length) * 100}%` }} />
@@ -183,14 +189,14 @@ export function QuizRunner() {
         </div>
         {answered && (
           <div className="space-y-3 border-t border-line p-5">
-            <Callout tone={correct ? "ok" : "danger"} title={correct ? "Correct" : "Incorrect"}>
+            <Callout tone={correct ? "ok" : "danger"} title={correct ? l("Correct", "ถูกต้อง") : l("Incorrect", "ไม่ถูกต้อง")}>
               {q.rationale}
             </Callout>
             <p className="text-[11px] text-muted">
-              References: {q.refs.map((r) => REF_BY_ID[r]?.short).join(" · ")}
+              {l("References:", "อ้างอิง:")} {q.refs.map((r) => REF_BY_ID[r]?.short).join(" · ")}
             </p>
             <Button variant="primary" onClick={() => { setIdx((i) => i + 1); setChosen(null); }}>
-              {idx + 1 < session.length ? "Next question" : "See results"} <ChevronRight className="h-4 w-4" />
+              {idx + 1 < session.length ? l("Next question", "ข้อถัดไป") : l("See results", "ดูผลลัพธ์")} <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}

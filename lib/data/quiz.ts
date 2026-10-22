@@ -102,7 +102,7 @@ export const QUIZ: QuizQuestion[] = [
     stem: "In Boyden nomenclature, RB7 corresponds to which Jackson–Huber segment?",
     options: ["Medial basal", "Anterior basal", "Superior", "Lateral"],
     answer: 0,
-    rationale: "Right lower lobe: B6 superior, B7 medial basal, B8 anterior basal, B9 lateral basal, B10 posterior basal. On the left, B7 and B8 usually share an anteromedial trunk (B7+8).",
+    rationale: "Right lower lobe: B6 superior, B7 medial basal, B8 anterior basal, B9 lateral basal, B10 posterior basal. The left lower lobe has no separate B7: its basal segments are B8, B9 and B10.",
     refs: ["ERNST"],
   },
   {
@@ -132,7 +132,7 @@ export const QUIZ: QuizQuestion[] = [
     stem: "Typical angulation range of a standard adult flexible bronchoscope's bending section is:",
     options: ["≈180° up / 130° down", "≈90° up / 90° down", "≈360° in all directions", "≈60° up / 30° down"],
     answer: 0,
-    rationale: "Bending is uni-planar via two pull-wires; lateral targets require rotating the entire scope. Stretched cables reduce angulation over time.",
+    rationale: "Bending is uni-planar via two pull-wires; lateral targets require rotating the entire scope (current models such as the BF-H190 reach 210° up). Stretched cables reduce angulation over time.",
     refs: ["ERNST"],
   },
   {

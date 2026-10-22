@@ -27,8 +27,8 @@
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), var(--font-thai), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), var(--font-thai), ui-monospace, monospace;
 }
 
 html {
@@ -72,4 +72,12 @@ input[type="range"].slider:focus-visible {
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #334155 transparent;
+}
+
+/* Thai script has stacked vowels and tone marks: give lines a little more room. */
+html[lang="th"] body {
+  line-height: 1.65;
+}
+html[lang="th"] .leading-tight {
+  line-height: 1.4;
 }

@@ -172,67 +172,82 @@ export type RiskFlag = { level: "stop" | "caution" | "ok"; text: string; ref?: s
 
 const BIOPSY = new Set<PlannedProcedure>(["brush", "ebbx", "tblb", "tbna"]);
 
+/** Picks the English or Thai message (Thai keeps medical terms in English). */
+export type Lang = (en: string, th: string) => string;
+const EN: Lang = (en) => en;
+
 /** Rule engine for the pre-procedure checklist. Thresholds paraphrased from cited sources. */
-export function assessRisk(i: RiskInput): RiskFlag[] {
+export function assessRisk(i: RiskInput, l: Lang = EN): RiskFlag[] {
   const f: RiskFlag[] = [];
   const biopsy = BIOPSY.has(i.procedure);
 
-  if (!i.consent) f.push({ level: "stop", text: "Informed consent not documented — obtain before any sedation.", ref: "ERNST" });
-  if (!i.fasting) f.push({ level: "caution", text: "Not fasted: elective sedation is preferred ≥6–8 h after solids and ≥2 h after clear fluids.", ref: "ERNST" });
+  if (!i.consent) f.push({ level: "stop", text: l("Informed consent not documented — obtain before any sedation.", "ยังไม่มีการบันทึก informed consent — ต้องได้รับก่อนให้ sedation"), ref: "ERNST" });
+  if (!i.fasting) f.push({ level: "caution", text: l("Not fasted: elective sedation is preferred ≥6–8 h after solids and ≥2 h after clear fluids.", "ยังไม่งดน้ำงดอาหาร: elective sedation ควรทำหลังอาหาร ≥6–8 ชม. และน้ำใส ≥2 ชม."), ref: "ERNST" });
 
   if (i.platelets !== null) {
-    if (i.procedure === "tblb" && i.platelets < 50) f.push({ level: "stop", text: `Platelets ${i.platelets} ×10⁹/L: below the ~50 threshold commonly used for TBLB — transfuse or defer.`, ref: "ERNST" });
-    else if (biopsy && i.platelets < 50) f.push({ level: "stop", text: `Platelets ${i.platelets} ×10⁹/L: EBBx/brushing not recommended with significant thrombocytopenia (<50).`, ref: "ERNST" });
-    else if (i.platelets < 20) f.push({ level: "caution", text: `Platelets ${i.platelets} ×10⁹/L: consider transfusion even for BAL/inspection.`, ref: "BTS2013" });
-    else f.push({ level: "ok", text: `Platelets ${i.platelets} ×10⁹/L acceptable for the planned procedure.` });
+    const p = i.platelets;
+    if (i.procedure === "tblb" && p < 50) f.push({ level: "stop", text: l(`Platelets ${p} ×10⁹/L: below the ~50 threshold commonly used for TBLB — transfuse or defer.`, `Platelets ${p} ×10⁹/L: ต่ำกว่าเกณฑ์ ~50 ที่มักใช้สำหรับ TBLB — ให้เกล็ดเลือดหรือเลื่อนหัตถการ`), ref: "ERNST" });
+    else if (biopsy && p < 50) f.push({ level: "stop", text: l(`Platelets ${p} ×10⁹/L: EBBx/brushing not recommended with significant thrombocytopenia (<50).`, `Platelets ${p} ×10⁹/L: ไม่แนะนำ EBBx/brushing เมื่อมี thrombocytopenia ชัดเจน (<50)`), ref: "ERNST" });
+    else if (p < 20) f.push({ level: "caution", text: l(`Platelets ${p} ×10⁹/L: consider transfusion even for BAL/inspection.`, `Platelets ${p} ×10⁹/L: พิจารณาให้เกล็ดเลือดแม้ทำแค่ BAL/ส่องดู`), ref: "BTS2013" });
+    else f.push({ level: "ok", text: l(`Platelets ${p} ×10⁹/L acceptable for the planned procedure.`, `Platelets ${p} ×10⁹/L อยู่ในเกณฑ์สำหรับหัตถการที่วางแผน`) });
   } else if (biopsy) {
-    f.push({ level: "caution", text: "Check platelet count before biopsy procedures.", ref: "BTS2013" });
+    f.push({ level: "caution", text: l("Check platelet count before biopsy procedures.", "ควรตรวจ platelet count ก่อนทำ biopsy"), ref: "BTS2013" });
   }
 
   if (i.inr !== null) {
-    if (biopsy && i.inr > 1.5) f.push({ level: "stop", text: `INR ${i.inr}: >1.5 — correct before biopsy (target ≤1.5).`, ref: "ERNST" });
-    else f.push({ level: "ok", text: `INR ${i.inr} acceptable.` });
-  } else if (biopsy && (i.anticoag === "warfarin")) {
-    f.push({ level: "caution", text: "On warfarin: INR must be checked on the day.", ref: "BTS2013" });
+    if (biopsy && i.inr > 1.5) f.push({ level: "stop", text: l(`INR ${i.inr}: >1.5 — correct before biopsy (target ≤1.5).`, `INR ${i.inr}: >1.5 — แก้ไขก่อน biopsy (เป้าหมาย ≤1.5)`), ref: "ERNST" });
+    else f.push({ level: "ok", text: l(`INR ${i.inr} acceptable.`, `INR ${i.inr} อยู่ในเกณฑ์`) });
+  } else if (biopsy && i.anticoag === "warfarin") {
+    f.push({ level: "caution", text: l("On warfarin: INR must be checked on the day.", "ได้รับ warfarin: ต้องตรวจ INR ในวันทำ"), ref: "BTS2013" });
   }
 
   const held = i.daysHeld ?? 0;
   switch (i.anticoag) {
     case "aspirin":
-      f.push({ level: "ok", text: "Aspirin: may continue — no increase in TBLB bleeding demonstrated.", ref: "HERTH2002" });
+      f.push({ level: "ok", text: l("Aspirin: may continue — no increase in TBLB bleeding demonstrated.", "Aspirin: ให้ต่อได้ — ไม่พบว่าเพิ่มเลือดออกจาก TBLB"), ref: "HERTH2002" });
       break;
     case "p2y12":
-      if (biopsy && held < 5) f.push({ level: "stop", text: `P2Y12 inhibitor held ${held} d: hold ≥5–7 days before biopsy (clopidogrel → ~89% significant TBLB bleeding in one study). Discuss with cardiology if recent stent.`, ref: "ERNST2006" });
-      else f.push({ level: "ok", text: biopsy ? "P2Y12 inhibitor held long enough." : "P2Y12 inhibitor: acceptable for non-biopsy procedures." });
+      if (biopsy && held < 5)
+        f.push({
+          level: "stop",
+          text: l(
+            `P2Y12 inhibitor held ${held} d: hold ≥5–7 days before biopsy (clopidogrel → ~89% significant TBLB bleeding in one study). Discuss with cardiology if recent stent.`,
+            `หยุด P2Y12 inhibitor มา ${held} วัน: ต้องหยุด ≥5–7 วันก่อน biopsy (clopidogrel → เลือดออกจาก TBLB อย่างมีนัยสำคัญ ~89% ในการศึกษาหนึ่ง) ปรึกษาแพทย์โรคหัวใจหากเพิ่งใส่ stent`,
+          ),
+          ref: "ERNST2006",
+        });
+      else f.push({ level: "ok", text: biopsy ? l("P2Y12 inhibitor held long enough.", "หยุด P2Y12 inhibitor นานพอแล้ว") : l("P2Y12 inhibitor: acceptable for non-biopsy procedures.", "P2Y12 inhibitor: ทำหัตถการที่ไม่ใช่ biopsy ได้") });
       break;
     case "warfarin":
-      if (biopsy && held < 5) f.push({ level: "caution", text: `Warfarin held ${held} d: usually stopped ~5 days before biopsy; confirm INR ≤1.5 and bridging plan.`, ref: "BTS2013" });
+      if (biopsy && held < 5) f.push({ level: "caution", text: l(`Warfarin held ${held} d: usually stopped ~5 days before biopsy; confirm INR ≤1.5 and bridging plan.`, `หยุด warfarin มา ${held} วัน: ปกติหยุด ~5 วันก่อน biopsy; ยืนยัน INR ≤1.5 และแผน bridging`), ref: "BTS2013" });
       break;
     case "doac":
-      if (biopsy && held < 2) f.push({ level: "stop", text: `DOAC held ${held} d: hold 24–48 h before biopsy (longer with renal/hepatic impairment).`, ref: "ERNST" });
-      else f.push({ level: "ok", text: "DOAC holding window adequate (re-check if CrCl reduced)." });
+      if (biopsy && held < 2) f.push({ level: "stop", text: l(`DOAC held ${held} d: hold 24–48 h before biopsy (longer with renal/hepatic impairment).`, `หยุด DOAC มา ${held} วัน: ต้องหยุด 24–48 ชม. ก่อน biopsy (นานกว่านี้หากไต/ตับบกพร่อง)`), ref: "ERNST" });
+      else f.push({ level: "ok", text: l("DOAC holding window adequate (re-check if CrCl reduced).", "ระยะหยุด DOAC เพียงพอ (ตรวจซ้ำหาก CrCl ลดลง)") });
       break;
     case "lmwh-therapeutic":
-      if (biopsy && held < 1) f.push({ level: "stop", text: "Therapeutic LMWH: last dose must be ≥24 h before biopsy.", ref: "ERNST" });
+      if (biopsy && held < 1) f.push({ level: "stop", text: l("Therapeutic LMWH: last dose must be ≥24 h before biopsy.", "Therapeutic LMWH: ขนาดสุดท้ายต้อง ≥24 ชม. ก่อน biopsy"), ref: "ERNST" });
       break;
     case "heparin":
-      if (biopsy) f.push({ level: "caution", text: "IV heparin: stop ~6 h before; restart ≥12 h after.", ref: "ERNST" });
+      if (biopsy) f.push({ level: "caution", text: l("IV heparin: stop ~6 h before; restart ≥12 h after.", "IV heparin: หยุด ~6 ชม. ก่อน; เริ่มใหม่ ≥12 ชม. หลังทำ"), ref: "ERNST" });
       break;
   }
 
-  if (i.asa >= 4) f.push({ level: "caution", text: `ASA ${i.asa}: high-risk — consider anaesthesia support / ICU setting; ECG within 6 months for ASA ≥ III.`, ref: "ASA" });
-  else if (i.asa === 3) f.push({ level: "caution", text: "ASA III: many centres require a recent ECG and closer monitoring.", ref: "ERNST" });
+  if (i.asa >= 4) f.push({ level: "caution", text: l(`ASA ${i.asa}: high-risk — consider anaesthesia support / ICU setting; ECG within 6 months for ASA ≥ III.`, `ASA ${i.asa}: ความเสี่ยงสูง — พิจารณาวิสัญญีแพทย์ / ทำใน ICU; ASA ≥ III ควรมี ECG ภายใน 6 เดือน`), ref: "ASA" });
+  else if (i.asa === 3) f.push({ level: "caution", text: l("ASA III: many centres require a recent ECG and closer monitoring.", "ASA III: หลายสถาบันกำหนดให้มี ECG ล่าสุดและเฝ้าระวังใกล้ชิดขึ้น"), ref: "ERNST" });
 
   if (i.spo2 !== null) {
-    if (i.spo2 < 90) f.push({ level: "stop", text: `SpO₂ ${i.spo2}%: hypoxaemic despite supplemental O₂ — consider elective intubation / defer.`, ref: "BTS2013" });
-    else f.push({ level: "ok", text: `SpO₂ ${i.spo2}% — keep >90% throughout (BTS).`, ref: "BTS2013" });
+    if (i.spo2 < 90) f.push({ level: "stop", text: l(`SpO₂ ${i.spo2}%: hypoxaemic despite supplemental O₂ — consider elective intubation / defer.`, `SpO₂ ${i.spo2}%: ยัง hypoxaemia แม้ให้ O₂ — พิจารณาใส่ท่อช่วยหายใจแบบ elective / เลื่อนหัตถการ`), ref: "BTS2013" });
+    else f.push({ level: "ok", text: l(`SpO₂ ${i.spo2}% — keep >90% throughout (BTS).`, `SpO₂ ${i.spo2}% — รักษาให้ >90% ตลอดหัตถการ (BTS)`), ref: "BTS2013" });
   }
-  if (i.o2Lpm !== null && i.o2Lpm > 5 && i.procedure === "tblb") f.push({ level: "caution", text: `O₂ ${i.o2Lpm} L/min: consider elective intubation before TBLB when >5 L/min nasal cannula is needed.`, ref: "ERNST" });
+  if (i.o2Lpm !== null && i.o2Lpm > 5 && i.procedure === "tblb")
+    f.push({ level: "caution", text: l(`O₂ ${i.o2Lpm} L/min: consider elective intubation before TBLB when >5 L/min nasal cannula is needed.`, `O₂ ${i.o2Lpm} L/min: พิจารณาใส่ท่อช่วยหายใจก่อน TBLB เมื่อต้องใช้ nasal cannula >5 L/min`), ref: "ERNST" });
 
-  if (i.recentMIWeeks !== null && i.recentMIWeeks < 6) f.push({ level: i.recentMIWeeks < 4 ? "stop" : "caution", text: `MI ${i.recentMIWeeks} weeks ago: defer elective bronchoscopy (≥4–6 weeks).`, ref: "BTS2013" });
-  if (i.pulmHtn && (i.procedure === "tblb")) f.push({ level: "caution", text: "Pulmonary hypertension: increased TBLB bleeding risk — weigh benefit, consider alternatives.", ref: "BTS2013" });
-  if (i.creatinine !== null && i.creatinine > 3 && biopsy) f.push({ level: "caution", text: `Creatinine ${i.creatinine} mg/dL: uraemic platelet dysfunction — consider desmopressin (DDAVP) before biopsy.`, ref: "ERNST" });
+  if (i.recentMIWeeks !== null && i.recentMIWeeks < 6)
+    f.push({ level: i.recentMIWeeks < 4 ? "stop" : "caution", text: l(`MI ${i.recentMIWeeks} weeks ago: defer elective bronchoscopy (≥4–6 weeks).`, `MI เมื่อ ${i.recentMIWeeks} สัปดาห์ก่อน: เลื่อน elective bronchoscopy (≥4–6 สัปดาห์)`), ref: "BTS2013" });
+  if (i.pulmHtn && i.procedure === "tblb") f.push({ level: "caution", text: l("Pulmonary hypertension: increased TBLB bleeding risk — weigh benefit, consider alternatives.", "Pulmonary hypertension: เสี่ยงเลือดออกจาก TBLB มากขึ้น — ชั่งประโยชน์ พิจารณาทางเลือกอื่น"), ref: "BTS2013" });
+  if (i.creatinine !== null && i.creatinine > 3 && biopsy) f.push({ level: "caution", text: l(`Creatinine ${i.creatinine} mg/dL: uraemic platelet dysfunction — consider desmopressin (DDAVP) before biopsy.`, `Creatinine ${i.creatinine} mg/dL: เกล็ดเลือดทำงานผิดปกติจาก uraemia — พิจารณา desmopressin (DDAVP) ก่อน biopsy`), ref: "ERNST" });
 
-  if (!f.some((x) => x.level !== "ok")) f.push({ level: "ok", text: "No blocking risk factors identified for the planned procedure." });
+  if (!f.some((x) => x.level !== "ok")) f.push({ level: "ok", text: l("No blocking risk factors identified for the planned procedure.", "ไม่พบปัจจัยเสี่ยงที่เป็นข้อห้ามสำหรับหัตถการที่วางแผน") });
   return f;
 }

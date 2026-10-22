@@ -1,6 +1,6 @@
 # Glossary
 
-**Segment** — A segmental bronchus (Boyden B1–B10 per side; on the left B1+2 and B7+8 share trunks). The unit trainees navigate to and identify.
+**Segment** — A segmental bronchus (Boyden B1–B10 on the right; on the left B1+2 share a trunk and there is no B7, so the left basal segments are B8–B10). The unit trainees navigate to and identify.
 
 **Subsegment** — A branch beyond a segment. In BronchoSim, subsegments are shown but never used as targets.
 
@@ -26,4 +26,4 @@
 
 **Secondary carina** — A spur between lobar or segmental orifices: RC1 separates the RUL and the bronchus intermedius; RC2 separates the RML and RLL; LC1 separates the upper division and the lingula; LC2 separates the LUL and LLL.
 
-**Common trunk** — A short bronchus shared by two segments before they divide, for example B9+10 (both sides) or the left B1+2 and B7+8.
+**Common trunk** — A short bronchus shared by two segments before they divide, for example B9+10 (both sides) or the left B1+2.

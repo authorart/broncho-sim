@@ -9,7 +9,8 @@
  *  - RB6 arises posteriorly at the level of the RML orifice, so the distal BI shows three
  *    orifices (RML, B6, basal trunk).
  *  - Right basal: B7 arises medially first, then B8, then a common B9+10 trunk.
- *  - Left basal: B7 is usually absent / fused with B8 (B7+8 = "B8"), then a common B9+10 trunk.
+ *  - Left basal: there is no separate B7 (medial basal) segment on the left — the basal trunk gives
+ *    B8 (anterior basal) and a common B9+10 trunk.
  * Dimensions follow Ernst 2017 ch. 4 (trachea 16–20 mm ID, RMB ~1.5 cm, BI 2–2.5 cm,
  * LMB 4–4.5 cm, LUL 2–3 cm incl. divisions, LLL ~1 cm beyond B6).
  */
@@ -254,7 +255,7 @@ const B: AirwayBranchDef[] = [
     length: 8,
     diameter: [9, 8.5],
     rings: 0.05,
-    description: "Divides into the anteromedial basal segment (B7+8, usually labelled B8) and the common B9+10 trunk.",
+    description: "Divides into the anterior basal segment (B8) and the common B9+10 trunk. Unlike the right side, there is no separate medial basal (B7) segment in the left lower lobe.",
   },
   {
     id: "LB9+10",
@@ -298,7 +299,7 @@ const SEGMENTS: SegDef[] = [
   { id: "LB5", boyden: "LB5", name: "LB5 – Inferior lingular", jacksonHuber: "Inferior lingular", parent: "Lingula", side: "L", lobe: "Lingula", dir: [0.3, -0.75, 0.58], description: "Inferior lingular segment." },
   // Left lower lobe
   { id: "LB6", boyden: "LB6", name: "LB6 – Superior (LLL)", jacksonHuber: "Superior", parent: "LLL", side: "L", lobe: "LLL", dir: [0.15, -0.05, -0.99], length: 9, diameter: [7, 6.5], subsegments: 3, description: "Superior segment of the LLL, arising posteriorly immediately on entering the LLL; trifurcates into a/b/c." },
-  { id: "LB7+8", boyden: "LB7+8", name: "LB7+8 – Anteromedial basal (\"B8\")", jacksonHuber: "Anteromedial basal", parent: "LB-basal", side: "L", lobe: "LLL", dir: [0.1, -0.75, 0.65], description: "Anteromedial basal segment: on the left B7 is usually absent or fused with B8, so this orifice is commonly labelled B8." },
+  { id: "LB8", boyden: "LB8", name: "LB8 – Anterior basal", jacksonHuber: "Anterior basal", parent: "LB-basal", side: "L", lobe: "LLL", dir: [0.1, -0.75, 0.65], description: "Anterior basal segment of the LLL. The left lower lobe has no separate medial basal (B7) segment, so the basal group is B8, B9 and B10." },
   { id: "LB9", boyden: "LB9", name: "LB9 – Lateral basal", jacksonHuber: "Lateral basal", parent: "LB9+10", side: "L", lobe: "LLL", dir: [0.75, -0.65, 0.0], description: "Lateral basal segment (shares a trunk with B10)." },
   { id: "LB10", boyden: "LB10", name: "LB10 – Posterior basal", jacksonHuber: "Posterior basal", parent: "LB9+10", side: "L", lobe: "LLL", dir: [0.2, -0.7, -0.7], subsegments: 3, description: "Posterior basal segment (subsegments a/b/c)." },
 ];

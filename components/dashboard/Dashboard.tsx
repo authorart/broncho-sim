@@ -7,7 +7,9 @@ import { CATEGORY_LABEL, QUIZ } from "@/lib/data/quiz";
 import { PROCEDURES } from "@/lib/data/procedures";
 import { SEGMENT_IDS } from "@/lib/data/airway";
 import { useProgress, type QuizCategory } from "@/lib/store/progress";
+import { useL } from "@/lib/i18n/locale";
 import { cn, formatSeconds } from "@/lib/utils";
+import { useContent } from "@/lib/i18n/content";
 
 function Bar({ value, tone = "accent" }: { value: number; tone?: "accent" | "ok" | "warn" }) {
   return (
@@ -64,24 +66,26 @@ export function useSummary() {
 export function Dashboard() {
   const s = useSummary();
   const reset = useProgress((x) => x.reset);
+  const l = useL();
+  const content = useContent();
 
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Overall readiness" value={`${Math.round(s.readiness)}%`} hint="mean of quiz, simulator & procedure scores" />
-        <Stat label="Quiz accuracy" value={s.answered ? `${Math.round(s.quizAcc)}%` : "—"} hint={`${s.answered}/${QUIZ.length} questions attempted`} />
-        <Stat label="Navigation score" value={s.nav.length ? Math.round(s.simAvg) : "—"} hint={`${s.navOk.length}/${s.nav.length} targets reached`} />
-        <Stat label="Segments mastered" value={`${s.mastered.size}/${SEGMENT_IDS.length}`} hint="reached or identified correctly" />
+        <Stat label={l("Overall readiness", "ความพร้อมโดยรวม")} value={`${Math.round(s.readiness)}%`} hint={l("mean of quiz, simulator & procedure scores", "ค่าเฉลี่ยของ quiz, simulator และหัตถการ")} />
+        <Stat label={l("Quiz accuracy", "ความถูกต้องของ quiz")} value={s.answered ? `${Math.round(s.quizAcc)}%` : "—"} hint={l(`${s.answered}/${QUIZ.length} questions attempted`, `ทำแล้ว ${s.answered}/${QUIZ.length} ข้อ`)} />
+        <Stat label={l("Navigation score", "คะแนนการนำทาง")} value={s.nav.length ? Math.round(s.simAvg) : "—"} hint={l(`${s.navOk.length}/${s.nav.length} targets reached`, `ไปถึงเป้าหมาย ${s.navOk.length}/${s.nav.length}`)} />
+        <Stat label={l("Segments mastered", "Segment ที่ทำได้")} value={`${s.mastered.size}/${SEGMENT_IDS.length}`} hint={l("reached or identified correctly", "ไปถึงหรือระบุได้ถูกต้อง")} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Quiz by domain" subtitle="Accuracy on your latest answer to each question" icon={<GraduationCap className="h-4 w-4" />} />
+          <CardHeader title={l("Quiz by domain", "Quiz แยกตามหมวด")} subtitle={l("Accuracy on your latest answer to each question", "ความถูกต้องจากคำตอบล่าสุดของแต่ละข้อ")} icon={<GraduationCap className="h-4 w-4" />} />
           <div className="space-y-3 p-4">
             {s.byCat.map((c) => (
               <div key={c.cat}>
                 <div className="mb-1 flex justify-between text-sm">
-                  <span>{CATEGORY_LABEL[c.cat]}</span>
+                  <span>{content.category(c.cat, CATEGORY_LABEL[c.cat])}</span>
                   <span className="font-mono text-xs text-muted">
                     {c.attempted ? `${Math.round(c.accuracy)}%` : "—"} · {c.attempted}/{c.total}
                   </span>
@@ -89,18 +93,18 @@ export function Dashboard() {
                 <Bar value={c.accuracy} tone={c.accuracy >= 80 ? "ok" : c.accuracy >= 60 ? "accent" : "warn"} />
               </div>
             ))}
-            <Link href="/quiz" className="inline-block pt-1 text-xs text-cyan-300 hover:underline">Take a quiz →</Link>
+            <Link href="/quiz" className="inline-block pt-1 text-xs text-cyan-300 hover:underline">{l("Take a quiz →", "ทำแบบทดสอบ →")}</Link>
           </div>
         </Card>
 
         <Card>
-          <CardHeader title="Procedural mini-simulations" subtitle="Best score per procedure" icon={<FlaskConical className="h-4 w-4" />} />
+          <CardHeader title={l("Procedural mini-simulations", "Mini-simulation หัตถการ")} subtitle={l("Best score per procedure", "คะแนนสูงสุดของแต่ละหัตถการ")} icon={<FlaskConical className="h-4 w-4" />} />
           <div className="space-y-3 p-4">
             {s.procBest.map(({ p, best, runs, last }) => (
               <div key={p.id}>
                 <div className="mb-1 flex justify-between text-sm">
                   <Link href={`/procedures/${p.id}`} className="hover:text-cyan-300">{p.abbr} — {p.name}</Link>
-                  <span className="font-mono text-xs text-muted">{best !== null ? `best ${best} · last ${last} · ${runs} runs` : "not attempted"}</span>
+                  <span className="font-mono text-xs text-muted">{best !== null ? l(`best ${best} · last ${last} · ${runs} runs`, `สูงสุด ${best} · ล่าสุด ${last} · ${runs} ครั้ง`) : l("not attempted", "ยังไม่ได้ทำ")}</span>
                 </div>
                 <Bar value={best ?? 0} tone={(best ?? 0) >= 80 ? "ok" : "accent"} />
               </div>
@@ -111,25 +115,25 @@ export function Dashboard() {
 
       <Card>
         <CardHeader
-          title="Simulator attempts"
-          subtitle={`Identification accuracy ${s.ident.length ? Math.round(s.identAcc) + "%" : "—"} over ${s.ident.length} tasks`}
+          title={l("Simulator attempts", "ประวัติการใช้ simulator")}
+          subtitle={l(`Identification accuracy ${s.ident.length ? Math.round(s.identAcc) + "%" : "—"} over ${s.ident.length} tasks`, `ความถูกต้องในการระบุ ${s.ident.length ? Math.round(s.identAcc) + "%" : "—"} จาก ${s.ident.length} โจทย์`)}
           icon={<Activity className="h-4 w-4" />}
-          action={<Link href="/simulator" className="text-xs text-cyan-300 hover:underline">Open simulator →</Link>}
+          action={<Link href="/simulator" className="text-xs text-cyan-300 hover:underline">{l("Open simulator →", "เปิด simulator →")}</Link>}
         />
         <div className="overflow-x-auto p-4">
           {s.sim.length === 0 ? (
-            <p className="text-sm text-muted">No simulator tasks yet.</p>
+            <p className="text-sm text-muted">{l("No simulator tasks yet.", "ยังไม่มีประวัติการทำโจทย์ใน simulator")}</p>
           ) : (
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead>
                 <tr className="border-b border-line text-xs uppercase tracking-wider text-muted">
-                  <th className="py-2">When</th>
-                  <th>Task</th>
-                  <th>Target</th>
-                  <th>Result</th>
-                  <th>Time</th>
-                  <th>Contacts</th>
-                  <th>Score</th>
+                  <th className="py-2">{l("When", "เวลา")}</th>
+                  <th>{l("Task", "โจทย์")}</th>
+                  <th>{l("Target", "เป้าหมาย")}</th>
+                  <th>{l("Result", "ผล")}</th>
+                  <th>{l("Time", "เวลาที่ใช้")}</th>
+                  <th>{l("Contacts", "ชนผนัง")}</th>
+                  <th>{l("Score", "คะแนน")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -138,10 +142,10 @@ export function Dashboard() {
                     <td className="py-1.5 text-xs text-muted">{new Date(a.at).toLocaleString()}</td>
                     <td className="flex items-center gap-1.5 py-1.5">
                       {a.kind === "navigate" ? <Brain className="h-3.5 w-3.5 text-amber-300" /> : <Crosshair className="h-3.5 w-3.5 text-cyan-300" />}
-                      {a.kind}
+                      {a.kind === "navigate" ? l("navigate", "นำทาง") : l("identify", "ระบุ")}
                     </td>
                     <td className="font-mono">{a.target}</td>
-                    <td><Badge tone={a.success ? "ok" : "danger"}>{a.success ? "success" : "miss"}</Badge></td>
+                    <td><Badge tone={a.success ? "ok" : "danger"}>{a.success ? l("success", "สำเร็จ") : l("miss", "ไม่สำเร็จ")}</Badge></td>
                     <td className="font-mono text-xs">{a.kind === "navigate" ? formatSeconds(a.timeSec) : "—"}</td>
                     <td className="font-mono text-xs">{a.kind === "navigate" ? a.contacts : "—"}</td>
                     <td className="font-mono">{a.score}</td>
@@ -154,8 +158,8 @@ export function Dashboard() {
       </Card>
 
       <div className="flex justify-end">
-        <Button variant="danger" size="sm" onClick={() => { if (window.confirm("Erase all locally stored progress?")) reset(); }}>
-          <Trash2 className="h-3.5 w-3.5" /> Reset my progress
+        <Button variant="danger" size="sm" onClick={() => { if (window.confirm(l("Erase all locally stored progress?", "ลบความก้าวหน้าทั้งหมดที่บันทึกไว้ในเครื่องนี้?"))) reset(); }}>
+          <Trash2 className="h-3.5 w-3.5" /> {l("Reset my progress", "ล้างความก้าวหน้า")}
         </Button>
       </div>
     </div>

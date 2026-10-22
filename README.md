@@ -7,12 +7,14 @@ A browser-based training suite for flexible bronchoscopy, built with **Next.js 1
 | Route | Module |
 | --- | --- |
 | `/anatomy` | Airway atlas: raymarched endoscopic view (trachea → B1–B10) with clickable orifices, a 3D extraluminal map with IASLC lymph node stations and great vessels, larynx diagram, Boyden ↔ Jackson–Huber table |
-| `/simulator` | Virtual bronchoscopy: tip flexion (+180°/−130°), rotation, advance/withdraw, wall-contact detection, wedging; free mode, scored navigation & identification tasks |
+| `/simulator` | Virtual bronchoscopy: tip flexion (+210°/−130°), rotation, advance/withdraw (withdrawal retraces the inserted path), wall-contact counting, wedging; free mode, scored navigation & identification tasks |
 | `/equipment` | Flexible bronchoscope, convex-probe EBUS (balloon, needle stopper, Doppler, live generated sonogram), radial-probe EBUS with guide sheath (concentric / eccentric / adjacent patterns) |
 | `/guidelines` | Indications & contraindications matrix, antithrombotic holding windows, ASA classes, interactive pre-procedural risk checklist |
 | `/procedures/[id]` | BW, BAL, brushing, EBBx, TBLB, TBNA/EBUS-TBNA: step-by-step workflow, tips & complications checklist, scored mini-simulation |
 | `/quiz` | 40 vignette MCQs (anatomy, equipment, safety, guidelines) with simulated endoscopic stills and generated EBUS images |
 | `/dashboard` | Performance across quiz domains, simulator tasks and procedure sims (stored in `localStorage`) |
+
+The interface is available in **English and Thai** (toggle in the sidebar). Thai mode keeps anatomical, device and drug terms in English. It uses Noto Sans Thai Looped.
 
 All imagery is generated procedurally (GLSL raymarching for the airway, canvas speckle synthesis for ultrasound) — no copyrighted figures are included.
 
@@ -41,9 +43,12 @@ components/ui           shared UI primitives
 lib/airway              tree geometry (SDF), scope kinematics
 lib/data                medical content (airway, mediastinum, equipment, guidelines, procedures, quiz, references)
 lib/store               persisted progress (Zustand)
+lib/i18n                locale store, Thai overlays for the medical content (lib/i18n/th)
 ```
 
 ## Sources & disclaimer
 
 Content is paraphrased from Ernst A (ed.), *Introduction to Bronchoscopy*, 2nd ed. (Cambridge University Press, 2017) and BTS 2013, CHEST 2013/2016, ATS 2012, IASLC 2009 and ESGE/ERS/ESTS 2015 guidance — full list at `/references`.
+© 2026 Sirot Jantharaksa, MD. All rights reserved.
+
 **Educational use only.** Not medical advice and not a substitute for supervised training or local protocols. The anatomical model is schematic.
